@@ -42,8 +42,6 @@ This will return an expression which contains runnable julia code
 
 
 
-# TODO!!! Add reverse indexing explanation
-
 
 JULIOG SYNTAX
 -----------------------------------------------------------------------------------
@@ -177,6 +175,8 @@ Wire Assignments
 		julia> const_25 = 25
 
 
+
+TODO Add reverse indexing explanation
 Bit indexing
 	Indexing a wire on the right hand side of = or := is identical to verilog syntax
 	julia> word = Input()[7:0]
