@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 # ex is a hardware function block
 # passedArguments is the passed Tuple which represents its arguments
 function parameterize(ex::Expr, passedArgs::Expr)
@@ -1102,4 +1100,3 @@ function isevaluable(ex::Expr)
 
     return true
 end
->>>>>>> af2b9d2b252b71a2344fb523c72d7fea2e38ef55

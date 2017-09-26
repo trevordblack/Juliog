@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # TODO create equivalence, greater, lesser, greterequal, lesserequal
 # TODO create add, subtract, mult, divide, rem functions
 
@@ -1836,5 +1835,4 @@ function _MONITOR_arith(W::Wire)
 end
 
 # TODO write a store function that stores all wire values to a file
->>>>>>> af2b9d2b252b71a2344fb523c72d7fea2e38ef55
 # TODO write a truncate file which says whenever a BITS operation loses data

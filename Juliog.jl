@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-
 struct pancake
     funcSymbol::Symbol
     funcName::String
@@ -262,5 +260,4 @@ macro block(func::Symbol, name::String, arguments::Expr)
 end
 
 # TODO write a pretty print function for exprs
->>>>>>> af2b9d2b252b71a2344fb523c72d7fea2e38ef55
 # TODO write a print to file for verilog
