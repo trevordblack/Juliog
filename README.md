@@ -190,8 +190,8 @@ There are 5(+1) ways to create a wire
    julia> new_wire = A & B # the := can also be used here 
    ```
 
-  The bit length of the new_wire will be determined by the bit length of the wire that the right hand side solves to.
-  For this example the bit length would be that of A and B
+   The bit length of the new_wire will be determined by the bit length of the wire that the right hand side solves to.
+   For this example the bit length would be that of A and B
 
 
 5) Assign a value to an undefined variable name of determinate bit length
@@ -208,7 +208,7 @@ There are 5(+1) ways to create a wire
    julia cout, sum := A + B
    ```
 
-output and input creation only allows for 1-3 above:
+Output and input creation only allows for 1-3 above:
 
 ```julia
 julia> indet_output = Output()
@@ -222,16 +222,16 @@ julia> wire_output   = Output()[a:b]
 
 ### Higher Dimensionality Wires (in progress, but not yet complete, do not use)
 
-TODO This section needs fleshing out
-TODO mention difference between Julia matrix syntax and verilog bus syntax
+* This section needs fleshing out  
+* Mention difference between Julia matrix syntax and verilog bus syntax
 
-Just like any other higher-order programming language, Julia supports multidimentional arrays
+Just like any other higher-order programming language, Julia supports multidimentional arrays.
 
-Juliog extends this functionality for the creation of multi-dimensional wires
+Juliog extends this functionality for the creation of multi-dimensional wires.
 		
-Multi-dimensional wires are commonly refered to as buses in Verilog parlance
+Multi-dimensional wires are commonly refered to as buses in Verilog parlance.
 
-Buses of indeterminate width are not allowed, but the wires within can still be indeterminate 
+Buses of indeterminate width are not allowed, but the wires within can still be indeterminate.
 
 ```julia
 julia> bus_bit_wires   = Wire()[a][c:d]
@@ -252,14 +252,14 @@ julia> bus_outputs       = Output()[a:b][c:d]
 
 Can be accomplished in 1 of 3 seperate ways
 
-1) using = operator after wire creation
+1) using equals operator (=) after wire creation
 
    ```julia
    julia> created_wire = Wire()
    julia> created_wire = A & B
    ```
 
-2) using := operator after wire creation
+2) using colon-equals operator (:=) after wire creation
 
    ```julia
    julia> created_wire = Wire()
@@ -269,7 +269,6 @@ Can be accomplished in 1 of 3 seperate ways
     Note that this is functionally equivalent to using the = operator at the gate level
 	
     The = operator is converted to the := operator in preprocessing and the := is ultimately used for assignment once converting to Verilog and Julia
-
 
      A reason the designer may choose to use := over = is for ease of code clarity, keeping assignments as := may improve code legibility
 
@@ -290,14 +289,13 @@ julia> const_25 = Wire()
 julia> const_25 = 25
 ```
 
-Whereas the following will not create a wire, but will create a parameter
+Whereas the following will not create a wire, but will create a parameter:
 
 ```julia
 julia> const_25 = 25
 ```
 
-
-TODO Add reverse indexing explanation
+* Add reverse indexing explanation
 
 
 ### Bit indexing
@@ -308,6 +306,7 @@ Indexing a wire on the right hand side of = or := is identical to verilog syntax
 julia> word = Input()[7:0]
 julia> upper_nibble = word[7:4]
 julia> lower_nibble = word[3:0]
+julia> one_bit = word[7]
 ```
 
 Of course, the colon-equals operator is also fine
@@ -315,7 +314,8 @@ Of course, the colon-equals operator is also fine
 ```julia
 julia> word = Input()[7:0]
 julia> upper_nibble := word[7:4]
-julia> lower_nibble := word[3:0]	
+julia> lower_nibble := word[3:0]
+julia> one_bit := word[7]
 ```
 
 ### Bit(s) Assignment
@@ -350,16 +350,16 @@ julia> nibbles[7:4] := upper_nibble[3:0]
 julia> nibbles[3:0] := lower_nibble[3:0]	
 ```
 
-Note that again, the colon-equals operator is acceptable for assignment. It is, not, however acceptable to use a colon-equals operator for wire or I/O creation. The equals operator is exclusive for this operation
+Note that again, the := operator is acceptable for assignment. It is, not, however acceptable to use a := operator for Wire or I/O creation. The = operator is exclusive for that operation.
 
 
-Not also, that the following is NOT accepted, since nibbles was not previously created
+Note also, that the following is NOT accepted, since nibbles was not previously created:
 
 ```julia
 julia> upper_nibble = Input()[3:0]
 julia> lower_nibble = Input()[3:0]
-julia> nibbles[7:4] = upper_nibble
-julia> nibbles[3:0] = lower_nibble
+julia> nibbles[7:4] = upper_nibble # Throws an Error
+julia> nibbles[3:0] = lower_nibble # Throws an Error
 ```
 
 In this example, we are attempting to write to bits which we are not certain actually exist. There is a means by which this could be acceptable, but in the Juliog language, we ban it outright. Writing to specific bits of wires is only allowed if the wire is created *A Priori*.
@@ -369,7 +369,6 @@ In this example, we are attempting to write to bits which we are not certain act
 The bits of any two or more wires can be concatenated in the following manner
 
 ```julia
-julia> combined = Wire()
 julia> combined = [a ; b]     # for 2 wires
 julia> combined = [a ; b ; c] # for 3 wires
 julia> # can be extended for any number of wires
@@ -387,11 +386,12 @@ A wire's bit(s) can be concatenated to itself a set number of times
 
 ```julia
 julia> bit_repeats = a(repeats)
+julia> other_bit_repeats = a[3:0](repeats)
 ```
 
 Where a is a wire, and repeats is an integer
 
-These can also be concatened just as above:
+These can also be concatenated just as above:
 
 ```julia
 julia> complicated = [ a(repeats) ; a[1:0](8) ; b[1:0] ]
@@ -399,23 +399,24 @@ julia> complicated = [ a(repeats) ; a[1:0](8) ; b[1:0] ]
 
 ### Supported Logic Functions
 
-```julia
-& - AND
-| - OR
-~ - NOT
-+ - ADD
-- - SUB
-* - MULT
-/ - DIV
-% - REM
-== - Equivalence
-!= - Non-Equivalence
->  - Greater than
-<  - Lesser than
->= - Greater than or equal to
-<= - Lesser than or equal to
-<< - Shift Left
->> - Logical Shift Right
+```
+&   - AND
+|   - OR
+~   - NOT
++   - ADD
+-   - SUB
+*   - MULT
+/   - DIV
+%   - REM
+==  - Equivalence
+!=  - Non-Equivalence
+>   - Greater than
+<   - Lesser than
+>=  - Greater than or equal to
+<=  - Lesser than or equal to
+<<  - Shift Left
+>>  - Logical Shift Right
+
 >>> - Arithmetic Shift Right
 	An important note about the shift right operations
 	The >>> in Julia is the logical shift right
@@ -423,6 +424,7 @@ julia> complicated = [ a(repeats) ; a[1:0](8) ; b[1:0] ]
 	This is opposite in Verilog, and so JG code follows the verilog convention
 	Outside of JG, file, they will be in the julia convention
 	BE CAREFUL.
+
 ^ - XOR
 	An important note about the xor operation:
 	The xor function in Julia is called by xor(num, other_num)
@@ -431,10 +433,12 @@ julia> complicated = [ a(repeats) ; a[1:0](8) ; b[1:0] ]
 	So in preprocessing, the ^ op is replaced by a xor function call
 	Outside of JG file, the ^ op will act as a power operator
 	BE CAREFUL.
+
 ? : - MUX
 	An imporant note about the ? : operation
 	the ? : op is parsed in julia into an if-else statement
 	It is therefore completely indistinguishable from an if-else statement
+
 Latch - through special logic see below
 Reg   - through special logic see below
 ```
@@ -442,14 +446,14 @@ Reg   - through special logic see below
 Unitary & and | not yet supported, support is in decision
 
 
-### Instantiating child hardware functions
+### Instantiating Children Hardware functions
 
 ```julia
 julia> :(
 	function LOGIC(OUT, IN)
 	# LOGIC implementation
 
-	@block OTHER_LOGIC "the_other_logic" (ol_output, my_val)
+	@block CHILD_LOGIC "the_child_logic" (ol_output, my_val)
 
 	# More LOGIC implementation
 	end
@@ -464,7 +468,7 @@ julia> :(
 	# LOGIC implementation
 
 	for i = 1:n
-		OTHER_LOGIC "logic_$(i)" (ol_output[i], my_val)
+		@block CHILD_LOGIC "child_logic_$(i)" (ol_output[i], my_val)
 	end
 
 	# More LOGIC implementation
@@ -478,8 +482,6 @@ julia> :(
 At the parameterization stage, any variables will be replaced with their constant values.
 
 Any statically defined if conditions will reduce to either `true` or `false` at compile time. If the condition reduces to the static Bool `true` then the contents of the if block will be raised to the level of the if statement, the condition will be removed, and the else block will be removed. For an if statment in the function block, the if block will be raised to function block; for a nested if statement, the nested if will be raised to the parent if statement. If the condition is reduced to a static Bool `false` then the contents of the else block will be raised, the if block will be removed, and the condition will be removed. Should no else condition exist, then nothing will be raised, and the entire if statement will be removed. 
-
-For the if statement condition which is not statically defined (i.e. dynamically defined in relation to a wire value) the if statement and all of its constituent parts (the if condition, the if block, and the else block should it exist) will be parameterized, but not raised, nor removed.
 
 
 ```julia
@@ -514,8 +516,10 @@ julia> :(
 ```
 
 
+For the if statement condition which is not statically defined (i.e. dynamically defined in relation to a wire value) the if statement and all of its constituent parts (the if condition, the if block, and the else block should it exist) will be parameterized, but not raised, nor removed.
+
 If the if statement can't be determined at compilation time
-i.e. The if statement is determined by a wire
+i.e. The if statement is determined by a wire:
 
 ```julia
 julia> :(
@@ -536,7 +540,8 @@ And the if-else statement will be turned into a MUX at preprocessing time.
 ### Case Statements
 
 Aren't supported natively in Julia, and are not supported here, as well.
-Case statements are additional abstraction which may not ever be necessary.
+
+Case statements are an additional abstraction which may never be necessary.
 
 ### for loops
 
@@ -586,37 +591,37 @@ julia> for i = [1, 2, 4, 6, 27] # Vectors
 @reg
 ```
 
-can be used to create any kind of register
+Can be used to create any kind of register
 
 ```julia
 @posedge
 ```
 
-can be used to create a posedge register (or a synchronously resetteble PR)
+Can be used to create a posedge register (or a synchronously resetteble PR)
 
 ```julia
 @negedge
 ```
 
-can be used to create a negedge register (or a synchronously resetteble NR)	
+Can be used to create a negedge register (or a synchronously resetteble NR)	
 
 ```julia
 @async
 ```
 
-can be used to quote off specific block of functional asynchronous logic
+Can be used to quote off specific block of functional asynchronous logic
 
 ```julia
 @delay
 ```
 
-can be used to establish a delay for a specific Juliog assignment or lines of code
+Can be used to establish a delay for a specific Juliog assignment or lines of code
 
 ```julia
 @block
 ```
 
-can be used to initialize a submodule
+Can be used to initialize a submodule
 
 ```julia
 @verilog
@@ -690,7 +695,7 @@ julia> :(
 
 	# for a double-edged
 	@reg begin
-		if CLK == 1
+		if     CLK == 1
 			Q = D
 		elseif CLK == 0
 			Q = D
@@ -699,7 +704,7 @@ julia> :(
 
 	# for an async-reset posedge
 	@reg begin
-		if RST == 1
+		if     RST == 1
 			Q = 0
 		elseif CLK = 1
 			Q = D
@@ -710,7 +715,7 @@ julia> :(
 
 ### Creating Latches
 
-Use an if-else or ternary op to create latches
+Use an if-else or a ternary operation to create latches
 
 ```julia
 julia> :(
@@ -724,7 +729,7 @@ julia> :(
 )
 ```
 
-OR
+Or with the ternary operation:
 
 
 ```julia
@@ -735,7 +740,7 @@ julia> :(
 )
 ```
 
-To accidentally create a latch:
+Just like Verilog, Juliog supports "accidentally" creating latches:
 
 ```julia
 julia> :(
@@ -743,19 +748,21 @@ julia> :(
 		D = Q
 	end
 )
+```
 
 Note that the sanitization stage of preprocessing will warn you of the accidental latch. The explicit latch created by the other two examples will NOT warn you.
 
 
 ### Creating Delays
 
-use the @delay macro
+Use the @delay macro
 
 ```julia
 @delay floating_point assignment
 ```
 
 The number must be represented as a floating point number.
+
 e.g. for a delay of 5
 
 ```julia
@@ -796,7 +803,8 @@ However, the reason for its inclusion is
 2) Has specific impacts on the conversion to verilog
 
 
-### Conversion to Verilog
+Conversion to Verilog
+---
 
 Occurs after the parameterization and sanitization steps of preprocessing.
 
@@ -818,7 +826,7 @@ The reason it might be desirable to use or not use @async macros is due to the i
 ### Inclusion of Don't Cares and High Impedances
 
 They are in here, but at present, are dumb. They only exist to aid in simulation.
-They can't be reasonably used to debug code, you should check parity with the testbench for that one. 
+They can't be used to certifiably debug code, but their inclusion may help you catch some architecture problems. You should check parity with the testbench for complete debugging. 
 
 ```julia
 julia> A = Wire()[0]
@@ -844,19 +852,13 @@ I am in the process of checking for this. But it isn't certain yet.
 MOONSHOOT Stuff
 ---
 
-Combinational Reductions
++ Combinational Reductions
     
-trace a path of operations e.g. [& & | + - ^] from input to reg, reg to reg, reg to output have a list of combinational reduction equivalences
+  Trace a path of operations e.g. [& & | + - ^] from input to reg, reg to reg, reg to output have a list of combinational reduction equivalences
 
-The program will still run if no combinational reductions are made
++ Flatten function:
 
-the first juliog simulator will not include these things
-
-Flatten function
-
-Removes any hierarchy from function, unrolls everything into top level
-
-Not necessary, but can be convienent
+  Removes any hierarchy from function, unrolls everything into top level
 
 
 NEXT UPDATE FUNCTIONALITY
