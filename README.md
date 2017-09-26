@@ -9,7 +9,7 @@ LOADING A JULIOG FUNCTION INTO JULIA
 Juliog functions cannot be directly parsed into the julia command-line or your operating system's command console.
 They must first be parsed through a preprocesser to sanitize the syntax and convert the (julia-esque) syntax to genuinely runnable julia code
 
-There are 3 ways to input jg code for preprocessing
+There are 3 ways to input juliog code for loading
 
 1) Call the parsefile function on a juliog file of interest
 
@@ -19,13 +19,13 @@ There are 3 ways to input jg code for preprocessing
 
 	where file_dir is the file location as a string of where the juliog function is found
 
-	```
+	```julia
 	julia> file_dir = "C:/Users/Trevor/Documents/full_adder.jl"
 	julia> func = parsefile(file_dir)
 	```
 
 2) Through a blocked expression
-	```
+	```julia
 	julia> func = :( 
 		function example(example_input, example_output)
 			# example implementation
@@ -34,7 +34,7 @@ There are 3 ways to input jg code for preprocessing
 	```
 
 3) Through a quoted expression
-	```
+	```julia
 	julia> func = quote 
 		function example(example_input, example_output)
 			# example implementation
@@ -42,29 +42,37 @@ There are 3 ways to input jg code for preprocessing
 	end
 	```
 
-Then run preprocess on the returned function block
-	julia> preprocessed_func = preprocess(func)
+Then once the Juliog has been entered into Julia as an Expr, run loadJULIOGexpr
+	```julia
+	julia> loadJULIOGexpr(func)
+	```
+	Where func is the name of the inputted expression
 
-This will return an expression which contains runnable julia code
-	to run this code, use
-	julia> eval(preprocessed_func) 
-
-
+Then, for preprocessing, run @block
+	```julia
+	@block example "Arbitrary Block Name" (example_in, example_out)
+	```
+	Where example is the name of the hardware function, "Arbitrary Block Name" is a the arbitary name of the hardware block implementation, and the tuple contains the names of testbench wires and parameteres.
 
 
 JULIOG SYNTAX
------------------------------------------------------------------------------------
+---
 
-How to set parameters
-	There are 4 ways to set parameters to a hardware design function
+##How to set parameters
+	
+There are 4 ways to set parameters to a hardware design function
 
 1) Setting a local parameter
+
 	e.g. localparm in verilog
 	Just by calling an assignment within a juliog function
+	```julia
 		julia> this_param = 5
+	``julia
 	Can't be overwritten at a higher level
 
 2) Passing a parameter through function interface
+
 	if your hardware function has keywords they can be overwritten
 	e.g.
 		julia> function LOGIC(OUT, IN ; passed_param = 8)
