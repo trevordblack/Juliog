@@ -18,7 +18,7 @@ There are 3 ways to input juliog code for loading
 	julia> func = parsefile(file_dir)
 	```
 
-	where file_dir is the file location as a string of where the juliog function is found
+where file_dir is the file location as a string of where the juliog function is found
 
 	```julia
 	julia> file_dir = "C:/Users/Trevor/Documents/full_adder.jl"
@@ -26,6 +26,7 @@ There are 3 ways to input juliog code for loading
 	```
 
 2) Through a blocked expression
+
 	```julia
 	julia> func = :( 
 		function example(example_input, example_output)
@@ -35,6 +36,7 @@ There are 3 ways to input juliog code for loading
 	```
 
 3) Through a quoted expression
+
 	```julia
 	julia> func = quote 
 		function example(example_input, example_output)
@@ -44,17 +46,20 @@ There are 3 ways to input juliog code for loading
 	```
 
 Then once the Juliog has been entered into Julia as an Expr, run loadJULIOGexpr
+
 	```julia
 	julia> loadJULIOGexpr(func)
 	```
-	Where func is the name of the inputted expression
+
+Where func is the name of the inputted expression
 
 Then, for preprocessing, run @block
+
 	```julia
 	@block example "Arbitrary Block Name" (example_in, example_out)
 	```
 
-Where example is the name of the hardware function, "Arbitrary Block Name" is a the arbitary name of the hardware block implementation, and the tuple contains the names of testbench wires and parameteres.
+Where example is the name of the hardware function, "Arbitrary Block Name" is a the arbitary name of the hardware block implementation, and the tuple contains the names of testbench wires and parameters.
 
 
 JULIOG SYNTAX
@@ -66,17 +71,19 @@ There are 4 ways to set parameters to a hardware design function
 
 1) Setting a local parameter
 
-	e.g. localparm in verilog
-	Just by calling an assignment within a juliog function
+e.g. localparm in verilog
+
+Just by calling an assignment within a juliog function
+
 	```julia
 		julia> this_param = 5
 	``
 
-	Can't be overwritten at a higher level
+Can't be overwritten at a higher level
 
 2) Passing a parameter through function interface
 
-	if your hardware function has keywords they can be overwritten
+if your hardware function has keywords they can be overwritten
 
 	```julia
 		julia> function LOGIC(OUT, IN ; passed_param = 8)
@@ -84,16 +91,17 @@ There are 4 ways to set parameters to a hardware design function
 		end
 	```
 
-	This then is called from above by:
+This then is called from above by:
 
 	```julia
 		julia> @block LOGIC "Clever_Name" (OUT_wire, IN_wire ; passed_param = 16)
 	```
 
-	Where for the LOGIC hardware function, the passed_param has been overwritten
+Where for the LOGIC hardware function, the passed_param has been overwritten
 
 3) Importing a modular parameter
-	First create a module of parameters
+	
+First create a module of parameters
 
 	```julia
 	julia> module my_parameters
@@ -102,7 +110,7 @@ There are 4 ways to set parameters to a hardware design function
 	end
 	```
 
-	then import the module in your hardware function
+then import the module in your hardware function
 
 	```julia
 	julia> function LOGIC(OUT, IN)
@@ -111,122 +119,202 @@ There are 4 ways to set parameters to a hardware design function
 	end
 	```
 
-	Alternatively, individual parameters can be requested
+Alternatively, individual parameters can be requested
 
 	```julia
 	julia> function LOGIC(OUT, IN)
 		import my_parameters.word_length
 		import my_parameters.nibble_length
 	end
-	```julia
+	```
 
 4) Create a global parameter
-	e.g. #define in Verilog
-	Big advantage over verilog
-	You can just set a large portion of your design according to a specific global param
-	Greatly reducing code complexity
-		julia> function LOGIC(OUT, IN)
-			global global_param
-			# LOGIC implementation
-		end
-	Then, somewhere in the testbench, or in the console command-line
+
+e.g. #define in Verilog
+
+Big advantage over verilog
+
+You can just set a large portion of your design according to a specific global param, greatly reducing code complexity
+
+	```julia
+	julia> function LOGIC(OUT, IN)
+		global global_param
+		# LOGIC implementation
+	end
+	```
+
+Then, somewhere in the testbench, or in the console command-line
+	
+	```julia
 		julia> global global_param = 16
-	The parameterization step of preprocessing will take care the rest
+	```
 
-
+The parameterization step of preprocessing will take care the rest
 
 
 
 ### How to create a wire
 
-There are 5 ways to create a wire
+There are 5(+1) ways to create a wire
 
 1) Create a wire of indeterminate bit length (not yet supported)
+
+	```julia
 	julia> indet_wire = Wire()
+	```
+
 2) Create a wire of bit length 1
+
+	```julia
 	julia> bit_wire = Wire()[a] 
-		where a is a non-negative Int
+	```
+	
+where a is a non-negative Int
+
+
 3) Create a wire of bit length 1 or greater
+
+	```julia
 	julia> bus_wire = Wire()[a:b]
-		where a and b are of type Int
-		both are non-negative
-		a and b can be the same number, e.g. bit length of 1
-		both endians accepted:
-			Either a or b can be greater than the other
+	```
+
+where a and b are of type Int
+
+both are non-negative
+
+a and b can be the same number, e.g. bit length of 1
+
+both endians accepted:
+	Either a or b can be greater than the other
+
 4) Assign a value to an undefined variable name
+
+	```julia
 	julia> isdefined(:new_wire) # this returns false
 	julia> new_wire = A & B # the := can also be used here 
-	The bit length of the new_wire will be determined by the bit length
-		of the wire that the right hand side solves to (e.g. bit length of A and B)
+	```
+
+The bit length of the new_wire will be determined by the bit length of the wire that the right hand side solves to (e.g. bit length of A and B)
+
+
 5) Assign a value to an undefined variable name of determinate bit length
+
+	```julia
 	julia> isdefined(:new_wire) # this returns false
 	julia> new_wire[7:0] = A & B # the := can also be used here 
+	```
+
 6) Maybe a vcat or a tuple (not yet implemented)
+
+	```julia
 	julia> [cout ; sum] := A + B
 	julia cout, sum := A + B
+	```
 
 output and input creation only allows for 1-3 above:
-	i.e.
+
+	```julia
 	julia> indet_output = Output()
 	julia> indet_input  = Input()
 	julia> bit_output   = Output()[a]
 	julia> bit_input    = Input()[a]
 	julia> wire_input    = Input()[a:b]
 	julia> wire_output   = Output()[a:b]
+	```
 
 Higher Dimensionality Wires (in progress, but not yet complete, do not use)
+
 # TODO mention difference between Julia matrix syntax and verilog bus syntax
-	Just like any other higher-order programming language, Julia supports multidimentional arrays
-	JADE extends this functionality for the creation of multi-dimensional wires
-		Multi-dimensional wires are commonly refered to as buses in Verilog parlance
-	Buses of indeterminate width are not allowed,
-		but the wires within can still be indeterminate 
-		julia> bus_bit_wires   = Wire()[a][c:d]
-		julia> bus_wires       = Wire()[a:b][c:d]
-		julia> bus_indet_wires = Wire()[][c:d]
+
+Just like any other higher-order programming language, Julia supports multidimentional arrays
+
+
+Juliog extends this functionality for the creation of multi-dimensional wires
+		
+	Multi-dimensional wires are commonly refered to as buses in Verilog parlance
+
+Buses of indeterminate width are not allowed, but the wires within can still be indeterminate 
+
+	```julia
+	julia> bus_bit_wires   = Wire()[a][c:d]
+	julia> bus_wires       = Wire()[a:b][c:d]
+	julia> bus_indet_wires = Wire()[][c:d]
+	```
+
 The same is also capable for inputs and outputs, using same syntax
+
+	```julia
 	julia> bus_bit_inputs    =  Input()[a][c:d]
 	julia> bus_inputs        =  Input()[a:b][c:d]
 	julia> bus_bit_outputs   = Output()[a][c:d]
 	julia> bus_outputs       = Output()[a:b][c:d]
+	```
+
 
 ### Wire Assignments
 
 Can be accomplished in 1 of 3 seperate ways
+
 1) using = operator after wire creation
+
+	```julia
 	julia> created_wire = Wire()
 	julia> created_wire = A & B
+	```
+
 2) using := operator after wire creation
+
+	```julia
 	julia> created_wire = Wire()
 	julia> created_wire := A & B
-	Note that this is functionally equivalent to using the = operator at the gate level
-		The = operator is converted to the := operator in preprocessing
-		and the := is ultimately used for conversion to gate-level
-	A reason the designer may choose to use := over = is for ease of code clarity
-		keeping assignments as := may improve code legibility
+	```
+
+Note that this is functionally equivalent to using the = operator at the gate level
+	
+The = operator is converted to the := operator in preprocessing and the := is ultimately used for conversion to gate-level
+
+
+A reason the designer may choose to use := over = is for ease of code clarity
+
+keeping assignments as := may improve code legibility
+
 3) Using = or := to declare an as of yet undeclared wire
+
+	```julia
 	julia> undeclared_wire = A & B
-	OR
+	# OR
 	julia> undeclared_wire := A & B
+	```
 
 A wire can also be assigned to a constant value
+
 But only after it is already created, otherwise the wire will be replaced through out the codebase with your static value
+
+	```julia
 	julia> const_25 = Wire()
 	julia> const_25 = 25
-
-
+	```
 
 TODO Add reverse indexing explanation
+
+
 ### Bit indexing
 
 Indexing a wire on the right hand side of = or := is identical to verilog syntax
-julia> word = Input()[7:0]
-julia> upper_nibble = word[7:4]
-julia> lower_nibble = word[3:0]
+
+	```julia
+	julia> word = Input()[7:0]
+	julia> upper_nibble = word[7:4]
+	julia> lower_nibble = word[3:0]
+	```
+
 Alternatively, the following is also fine
-julia> word = Input()[7:0]
-julia> upper_nibble := word[7:4]
-julia> lower_nibble := word[3:0]	
+
+	```julia
+	julia> word = Input()[7:0]
+	julia> upper_nibble := word[7:4]
+	julia> lower_nibble := word[3:0]	
+	```
 
 ### Bit(s) Assignment
 
@@ -525,7 +613,7 @@ OR, e.g.
 
 
 
-###Creating Delays
+### Creating Delays
 
 use the @delay macro
 syntax:
@@ -603,15 +691,18 @@ MOONSHOOT Stuff
 ---
 
 Combinational Reductions
-    trace a path of operations e.g. [& & | + - ^] from input to reg, reg to reg, reg to output
-    have a list of combinational reduction equivalences
+    
+trace a path of operations e.g. [& & | + - ^] from input to reg, reg to reg, reg to output have a list of combinational reduction equivalences
 
-    The program will still run if no combinational reductions are made
-    the first juliog simulator will not include these things
+The program will still run if no combinational reductions are made
+
+the first juliog simulator will not include these things
 
 Flatten function
-    Removes any hierarchy from function, unrolls everything into top level
-    Not necessary, but can be convienent
+
+Removes any hierarchy from function, unrolls everything into top level
+
+Not necessary, but can be convienent
 
 
 NEXT UPDATE FUNCTIONALITY
@@ -624,6 +715,7 @@ NEXT UPDATE FUNCTIONALITY
 
 #TODO nonblocking operator <= is less than equal operator in Julia, consider changing
 
+#TODO if statements support differing left hand side assignments
 
 TEST BENCH CONSTRUCTION
 ---
