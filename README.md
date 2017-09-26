@@ -18,7 +18,7 @@ There are 3 ways to input juliog code for loading
 julia> func = parsefile(file_dir)
 ```
 
-  where file_dir is the file location as a string of where the juliog function is found
+   where file_dir is the file location as a string of where the juliog function is found
 
 ```julia
 julia> file_dir = "C:/Users/Trevor/Documents/full_adder.jl"
@@ -71,10 +71,9 @@ There are 4 ways to set parameters to a hardware design function
 
 1) Setting a local parameter
 
-   Behaves identically to  `localparm` in verilog
-
-   Just call an assignment within a juliog function  
-   This cannot be overwritten at a higher 
+   Behaves identically to  `localparm` in Verilog  
+   Just call an assignment within a juliog function.  
+   This cannot be overwritten at a higher level.
 
 ```julia
 	julia> this_param = 5
@@ -82,7 +81,8 @@ There are 4 ways to set parameters to a hardware design function
 
 2) Passing a parameter through function interface
 
-   if your hardware function has keywords they can be overwritten
+   Behaves identically to `parameter` in Verilog.  
+   If your hardware function has keywords they can be overwritten.
 
 ```julia
 	julia> function LOGIC(OUT, IN ; passed_param = 8)
@@ -90,17 +90,17 @@ There are 4 ways to set parameters to a hardware design function
 	end
 ```
 
-   This then is called from above by:
+    This then is called from above by:
 
 ```julia
 	julia> @block LOGIC "Clever_Name" (OUT_wire, IN_wire ; passed_param = 16)
 ```
 
-  Where for the LOGIC hardware function, the passed_param has been overwritten
+   Where for the LOGIC hardware function, the passed_param has been overwritten.
 
 3) Importing a modular parameter
 	
-  First create a module of parameters
+   First create a module of parameters, likely in your command-line or an include file.
 
 ```julia
 julia> module my_parameters
@@ -109,7 +109,7 @@ julia> module my_parameters
 end
 ```
 
-  then import the module in your hardware function
+   then import the module in your hardware function
 
 ```julia
 julia> function LOGIC(OUT, IN)
@@ -118,7 +118,7 @@ julia> function LOGIC(OUT, IN)
 end
 ```
 
-  Alternatively, individual parameters can be requested
+   Alternatively, individual parameters can be requested
 
 ```julia
 julia> function LOGIC(OUT, IN)
@@ -127,15 +127,13 @@ julia> function LOGIC(OUT, IN)
 end
 ```
 
-  This follows the Julia Module syntax, see [Julia Stable Modules](https://docs.julialang.org/en/stable/manual/modules/)
+   This follows the Julia Module syntax, see [Julia Stable Modules](https://docs.julialang.org/en/stable/manual/modules/)
 
 4) Create a global parameter
 
-  e.g. #define in Verilog
+   This behaves similarly to #define in Verilog.
 
-  Big advantage over verilog
-
-  You can just set a large portion of your design according to a specific global param, greatly reducing code complexity
+   You can just set a large portion of your design according to a specific global parameter, greatly reducing code complexity.
 
 ```julia
 julia> function LOGIC(OUT, IN)
@@ -144,14 +142,13 @@ julia> function LOGIC(OUT, IN)
 end
 ```
 
-  Then, somewhere in the testbench, or in the console command-line
+   Then, somewhere in the testbench, the console command-line, or an include file:
 	
 ```julia
 	julia> global global_param = 16
 ```
 
-  The parameterization step of preprocessing will take care the rest
-
+   The parameterization step of preprocessing will take care the rest.
 
 
 ### How to create a wire
@@ -170,7 +167,7 @@ julia> indet_wire = Wire()
 julia> bit_wire = Wire()[a] 
 ```
 	
-  where a is a non-negative Int
+   where a is a non-negative Int
 
 
 3) Create a wire of bit length 1 or greater
@@ -179,12 +176,12 @@ julia> bit_wire = Wire()[a]
 julia> bus_wire = Wire()[a:b]
 ```
 
-  where a and b are of non-negative Ints
+   where a and b are non-negative Ints.
 
-  a and b can be the same number, i.e. bit length of 1
+   a and b can be the same number, i.e. bit length of 1.
 
-  both endians accepted:
-  Either a or b can be greater than the other
+   both endians accepted:  
+   Either a or b can be greater than the other.
 
 4) Assign a value to an undefined variable name
 
