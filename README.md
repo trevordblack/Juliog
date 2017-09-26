@@ -14,36 +14,36 @@ There are 3 ways to input juliog code for loading
 
 1) Call the parsefile function on a juliog file of interest
 
-```julia
-julia> func = parsefile(file_dir)
-```
+   ```julia
+   julia> func = parsefile(file_dir)
+   ```
 
    where file_dir is the file location as a string of where the juliog function is found
 
-```julia
-julia> file_dir = "C:/Users/Trevor/Documents/full_adder.jl"
-julia> func = parsefile(file_dir)
-```
+   ```julia
+   julia> file_dir = "C:/Users/Trevor/Documents/full_adder.jl"
+   julia> func = parsefile(file_dir)
+   ```
 
 2) Through a blocked expression
 
-```julia
-julia> func = :( 
-	function example(example_input, example_output)
-		# example implementation
-	end
-)
-```
+   ```julia
+   julia> func = :( 
+	   function example(example_input, example_output)
+	    	# example implementation
+	    end
+   )
+   ```
 
 3) Through a quoted expression
 
-```julia
-julia> func = quote 
-	function example(example_input, example_output)
-		# example implementation
-	end
-end
-```
+   ```julia
+   julia> func = quote 
+	   function example(example_input, example_output)
+		   # example implementation
+	   end
+   end
+   ```
 
 Then once the Juliog has been entered into Julia as an Expr, run loadJULIOGexpr
 
@@ -75,26 +75,26 @@ There are 4 ways to set parameters to a hardware design function
    Just call an assignment within a juliog function.  
    This cannot be overwritten at a higher level.
 
-```julia
-	julia> this_param = 5
-```
+   ```julia
+	   julia> this_param = 5
+   ```
 
 2) Passing a parameter through function interface
 
    Behaves identically to `parameter` in Verilog.  
    If your hardware function has keywords they can be overwritten.
 
-```julia
-	julia> function LOGIC(OUT, IN ; passed_param = 8)
-		# LOGIC implementation
-	end
-```
+   ```julia
+       julia> function LOGIC(OUT, IN ; passed_param = 8)
+		   # LOGIC implementation
+	   end
+   ```
 
-    This then is called from above by:
+   This then is called from above by:
 
-```julia
-	julia> @block LOGIC "Clever_Name" (OUT_wire, IN_wire ; passed_param = 16)
-```
+   ```julia
+	   julia> @block LOGIC "Clever_Name" (OUT_wire, IN_wire ; passed_param = 16)
+   ```
 
    Where for the LOGIC hardware function, the passed_param has been overwritten.
 
@@ -102,30 +102,30 @@ There are 4 ways to set parameters to a hardware design function
 	
    First create a module of parameters, likely in your command-line or an include file.
 
-```julia
-julia> module my_parameters
-	word_length   = 32 
-	nibble_length = 4
-end
-```
+   ```julia
+   julia> module my_parameters
+	   word_length   = 32 
+	   nibble_length = 4
+   end
+   ```
 
    then import the module in your hardware function
 
-```julia
-julia> function LOGIC(OUT, IN)
-	import my_parameters
-	# LOGIC implementation
-end
-```
+   ```julia
+   julia> function LOGIC(OUT, IN)
+	   import my_parameters
+	   # LOGIC implementation
+   end
+   ```
 
    Alternatively, individual parameters can be requested
 
-```julia
-julia> function LOGIC(OUT, IN)
-	import my_parameters.word_length
-	import my_parameters.nibble_length
-end
-```
+   ```julia
+   julia> function LOGIC(OUT, IN)
+	   import my_parameters.word_length
+	   import my_parameters.nibble_length
+   end
+   ```
 
    This follows the Julia Module syntax, see [Julia Stable Modules](https://docs.julialang.org/en/stable/manual/modules/)
 
@@ -135,18 +135,18 @@ end
 
    You can just set a large portion of your design according to a specific global parameter, greatly reducing code complexity.
 
-```julia
-julia> function LOGIC(OUT, IN)
-	global global_param
-	# LOGIC implementation
-end
-```
+   ```julia
+   julia> function LOGIC(OUT, IN)
+	   global global_param
+	   # LOGIC implementation
+   end
+   ```
 
    Then, somewhere in the testbench, the console command-line, or an include file:
-	
-```julia
-	julia> global global_param = 16
-```
+  	
+   ```julia
+	   julia> global global_param = 16
+   ```
 
    The parameterization step of preprocessing will take care the rest.
 
@@ -157,24 +157,24 @@ There are 5(+1) ways to create a wire
 
 1) Create a wire of indeterminate bit length (not yet supported)
 
-```julia
-julia> indet_wire = Wire()
-```
+   ```julia
+   julia> indet_wire = Wire()
+   ```
 
 2) Create a wire of bit length 1
 
-```julia
-julia> bit_wire = Wire()[a] 
-```
-	
+   ```julia
+   julia> bit_wire = Wire()[a] 
+   ```
+
    where a is a non-negative Int
 
 
 3) Create a wire of bit length 1 or greater
 
-```julia
-julia> bus_wire = Wire()[a:b]
-```
+   ```julia
+   julia> bus_wire = Wire()[a:b]
+   ```
 
    where a and b are non-negative Ints.
 
@@ -185,10 +185,10 @@ julia> bus_wire = Wire()[a:b]
 
 4) Assign a value to an undefined variable name
 
-```julia
-julia> isdefined(:new_wire) # this returns false
-julia> new_wire = A & B # the := can also be used here 
-```
+   ```julia
+   julia> isdefined(:new_wire) # this returns false
+   julia> new_wire = A & B # the := can also be used here 
+   ```
 
   The bit length of the new_wire will be determined by the bit length of the wire that the right hand side solves to.
   For this example the bit length would be that of A and B
@@ -196,17 +196,17 @@ julia> new_wire = A & B # the := can also be used here
 
 5) Assign a value to an undefined variable name of determinate bit length
 
-```julia
-julia> isdefined(:new_wire) # this returns false
-julia> new_wire[7:0] = A & B # the := can also be used here 
-```
+   ```julia
+   julia> isdefined(:new_wire) # this returns false
+   julia> new_wire[7:0] = A & B # the := can also be used here 
+   ```
 
 6) Maybe a vcat or a tuple (not yet implemented)
 
-```julia
-julia> [cout ; sum] := A + B
-julia cout, sum := A + B
-```
+   ```julia
+   julia> [cout ; sum] := A + B
+   julia cout, sum := A + B
+   ```
 
 output and input creation only allows for 1-3 above:
 
@@ -254,32 +254,32 @@ Can be accomplished in 1 of 3 seperate ways
 
 1) using = operator after wire creation
 
-```julia
-julia> created_wire = Wire()
-julia> created_wire = A & B
-```
+   ```julia
+   julia> created_wire = Wire()
+   julia> created_wire = A & B
+   ```
 
 2) using := operator after wire creation
 
-```julia
-julia> created_wire = Wire()
-julia> created_wire := A & B
-```
+   ```julia
+   julia> created_wire = Wire()
+   julia> created_wire := A & B
+   ```
 
- Note that this is functionally equivalent to using the = operator at the gate level
+    Note that this is functionally equivalent to using the = operator at the gate level
 	
- The = operator is converted to the := operator in preprocessing and the := is ultimately used for assignment once converting to Verilog and Julia
+    The = operator is converted to the := operator in preprocessing and the := is ultimately used for assignment once converting to Verilog and Julia
 
 
-  A reason the designer may choose to use := over = is for ease of code clarity, keeping assignments as := may improve code legibility
+     A reason the designer may choose to use := over = is for ease of code clarity, keeping assignments as := may improve code legibility
 
 3) Using = or := to declare an as of yet undeclared wire
 
-```julia
-julia> undeclared_wire = A & B
-# OR
-julia> undeclared_wire := A & B
-```
+   ```julia
+   julia> undeclared_wire = A & B
+   # OR
+   julia> undeclared_wire := A & B
+   ```
 
 A wire can also be assigned to a constant value
 
@@ -442,7 +442,7 @@ Reg   - through special logic see below
 Unitary & and | not yet supported, support is in decision
 
 
-### Instantiating other hardware functions
+### Instantiating child hardware functions
 
 ```julia
 julia> :(
@@ -475,226 +475,343 @@ julia> :(
 
 ### if-else constructs
 
-At the parameterization stage, any variables will be replaced with their constant values
+At the parameterization stage, any variables will be replaced with their constant values.
 
-And, for the if statements which can be determined at compilation, they will
+Any statically defined if conditions will reduce to either `true` or `false` at compile time. If the condition reduces to the static Bool `true` then the contents of the if block will be raised to the level of the if statement, the condition will be removed, and the else block will be removed. For an if statment in the function block, the if block will be raised to function block; for a nested if statement, the nested if will be raised to the parent if statement. If the condition is reduced to a static Bool `false` then the contents of the else block will be raised, the if block will be removed, and the condition will be removed. Should no else condition exist, then nothing will be raised, and the entire if statement will be removed. 
 
-e.g.
-	julia> :(
-		architecure = "Accumulating"
-		if architecture == "Accumulating"
-			# Accumulating architecture code
-		else
-			# Non accumulating architecture code
-		end
-	)
+For the if statement condition which is not statically defined (i.e. dynamically defined in relation to a wire value) the if statement and all of its constituent parts (the if condition, the if block, and the else block should it exist) will be parameterized, but not raised, nor removed.
 
-Will be subbed for
-	julia> :(
-		if true
-			# Accumulating architecture code
-		else
-			# Non accumulating architecture code
-		end
-	)
 
-And, finally
-		julia> :(
+```julia
+julia> :(
+	architecure = "Accumulating"
+	if architecture == "Accumulating"
 		# Accumulating architecture code
-	)
+	else
+		# Non accumulating architecture code
+	end
+)
+```
+
+When the parameter (can also be referred to as a local variable) :architecture is defined to be "Accumulating" the block will be reduced to the following:
+
+```julia
+julia> :(
+	if true
+		# Accumulating architecture code
+	else
+		# Non accumulating architecture code
+	end
+)
+```
+
+And, ultimately:
+
+```julia
+julia> :(
+	# Accumulating architecture code
+)
+```
+
 
 If the if statement can't be determined at compilation time
-	e.g. the if statement is determined by a wire
-		julia> :(
-			# nibble_index, out_wire, and value are created as wires
-			if nibble_index == 0
-				out_wire = value[3:0]
-			else
-				out_wire = value[7:4]
-			end
-		)
-		if nibble_index == 0
-	Then the if statement will not be block-wise reduced as above
-	Constants where applicable, even within the if block, will still be replaced
-	And the if-else statement will be turned into a MUX at preprocessing time
+i.e. The if statement is determined by a wire
 
-# TODO write about the two possible if condition syntaxes: Julia and Verilog
+```julia
+julia> :(
+	# nibble_index, out_wire, and value are created as wires
+	if nibble_index == 0
+		out_wire = value[3:0]
+	else
+		out_wire = value[7:4]
+	end
+)
+```
+
+Then the if statement will not be block-wise reduced as above.
+Constants where applicable, even within the if block, will still be replaced.
+And the if-else statement will be turned into a MUX at preprocessing time.
+
 
 ### Case Statements
 
-Aren't supported, sorry
+Aren't supported natively in Julia, and are not supported here, as well.
+Case statements are additional abstraction which may not ever be necessary.
 
 ### for loops
 
-Juliog can unroll for loops
+Juliog can unroll for loops.
 
-Supports 4 Syntaxes
+```julia
+julia> :(
+	# l is a parameter and equals 3; c, a, b are created as wires
+	for i = 0:l
+		c[i] = a[i] + b[i]
+		# Other assignments
+	end
+)
 
+```
+
+At compile time, the static for condition will unroll the above to the following code snippet:
+
+
+```julia
+julia> :(
+	c[0] = a[0] + b[0]
+	# Other assignments
+	c[1] = a[1] + b[1]
+	# Other assignments
+	c[2] = a[2] + b[2]
+	# Other assignments
+	c[3] = a[3] + b[3]
+	# Other assignments
+)
+
+```
+
+
+Supports 4 Syntaxes for the for condition:
+
+```julia
 julia> for i = 1:l
-julia> for i = [1; 2; 4; 6; 27]
-julia> for i = [1  2  4  6  27]
-julia> for i = [1, 2, 4, 6, 27]
+julia> for i = [1; 2; 4; 6; 27] # Vertical Concatenation
+julia> for i = [1  2  4  6  27] # Horizontal Concatentation
+julia> for i = [1, 2, 4, 6, 27] # Vectors
+```
 
 ### Important Macros
 
+```julia
 @reg
-	can be used to create any kind of register
+```
+
+can be used to create any kind of register
+
+```julia
 @posedge
-	can be used to create a posedge register (or a synchronously resetteble PR)
+```
+
+can be used to create a posedge register (or a synchronously resetteble PR)
+
+```julia
 @negedge
-	can be used to create a negedge register (or a synchronously resetteble NR)	
+```
+
+can be used to create a negedge register (or a synchronously resetteble NR)	
+
+```julia
 @async
-	can be used to quote off specific block of functional asynchronous logic
+```
+
+can be used to quote off specific block of functional asynchronous logic
+
+```julia
 @delay
-	can be used to establish a delay for a specific Juliog assignment or lines of code
+```
+
+can be used to establish a delay for a specific Juliog assignment or lines of code
+
+```julia
 @block
-	can be used to initialize a submodule
+```
+
+can be used to initialize a submodule
+
+```julia
 @verilog
-	Any string following @verilog will be unchanged and spit directly to Verilog
+```
+
+Any string following @verilog will be unchanged and spit directly to Verilog
+
+```julia
 @julia
-	Any string following @julia will be unchanged and spit directly to Julia
+```
+
+Any string following @julia will be unchanged and spit directly to Julia
+
+
 
 ### Creating Registers
 
 The @posedge macro
-	e.g.
-	julia> :(
-		# CLK, D, Q created as wires
 
-		@posedge CLK begin
-			Q <= D
-		end
+```julia
+julia> :(
+	# CLK, D, Q created as wires
 
-		# Alternatively
-		@posedge CLK begin
-			Q = D
-		end
-	)
+	@posedge CLK begin
+		Q <= D
+	end
+
+	# Alternatively
+	@posedge CLK begin
+		Q = D
+	end
+)
+```
 
 The @negedge macro
-	e.g.
-	julia> :(
-		# CLK, D, Q created as wires
 
-		@negedge CLK begin
-			Q <= D
-		end
+```julia
+julia> :(
+	# CLK, D, Q created as wires
 
-		# Alternatively
-		@negedge CLK begin
-			Q = D
-		end
-	)
+	@negedge CLK begin
+		Q <= D
+	end
 
+	# Alternatively
+	@negedge CLK begin
+		Q = D
+	end
+)
+```
 
 The @reg macro
-	e.g.
-	julia> :(
-		# RST, CLK, D, Q created as wires
 
-		# for a posedge
-		@reg begin
-			if CLK == 1
-				Q = D
-			end
+```julia
+julia> :(
+	# RST, CLK, D, Q created as wires
+
+	# for a posedge
+	@reg begin
+		if CLK == 1
+			Q = D
 		end
+	end
 
-		# for a negedge
-		@reg begin
-			if CLK == 0
-				Q = D
-			end
+	# for a negedge
+	@reg begin
+		if CLK == 0
+			Q = D
 		end
+	end
 
-		# for a double-edged
-		@reg begin
-			if CLK == 1
-				Q = D
-			elseif CLK == 0
-				Q = D
-			end
+	# for a double-edged
+	@reg begin
+		if CLK == 1
+			Q = D
+		elseif CLK == 0
+			Q = D
 		end
+	end
 
-		# for an async-reset posedge
-		@reg begin
-			if RST == 1
-				Q = 0
-			elseif CLK = 1
-				Q = D
-			end
+	# for an async-reset posedge
+	@reg begin
+		if RST == 1
+			Q = 0
+		elseif CLK = 1
+			Q = D
 		end
-	)
-
+	end
+)
+```
 
 ### Creating Latches
 
-Use a if-else or ternary op to create latches
-e.g.
-	julia> :(
-		# pass, D, and Q created as wires
+Use an if-else or ternary op to create latches
 
-		if   pass == 1
-			D = Q
-		else
-			D = D
-		end
-	)
-OR, e.g.
-	julia> :(
-		# pass, D, and Q created as wires
+```julia
+julia> :(
+	# pass, D, and Q created as wires
 
-		D = (pass == 1) ? Q : D
-	)
+	if   pass == 1
+		D = Q
+	else
+		D = D
+	end
+)
+```
 
+OR
+
+
+```julia
+julia> :(
+	# pass, D, and Q created as wires
+
+	D = (pass == 1) ? Q : D
+)
+```
+
+To accidentally create a latch:
+
+```julia
+julia> :(
+	if pass == 1
+		D = Q
+	end
+)
+
+Note that the sanitization stage of preprocessing will warn you of the accidental latch. The explicit latch created by the other two examples will NOT warn you.
 
 
 ### Creating Delays
 
 use the @delay macro
-syntax:
-	@delay number assignment
-The number must be represented as a floating point number
+
+```julia
+@delay floating_point assignment
+```
+
+The number must be represented as a floating point number.
 e.g. for a delay of 5
-	julia> :(
-		@delay 5.0  A := B[3:0]
-		# OR
-		@delay 5.0 begin
-			A := B[3:0]
-		end
-		# OR
-		@delay 5.0 quote
-			A := B[3:0]
-		end
-	)
+
+```julia
+julia> :(
+	@delay 5.0  A := B[3:0]
+	# OR
+	@delay 5.0 begin
+		A := B[3:0]
+	end
+)
+```
 
 
 ### Difference between logic inside and outside @async call
 
 Logic can be established inside a seperate @async macro
-e.g.
-	julia> :(
-		@async begin
-			A := B[3:0]
-		end
-	)
-Any logic included inside of an @async block is indistinguishable from logic outside of an @async block
-However,
-The reason for its inclusion is
+
+```julia
+julia> :(
+	@async begin
+		A := B[3:0]
+	end
+)
+```
+
+Any logic included inside of an @async block is indistinguishable from logic outside of an @async block. So the following example is logically equivalent to the above example:
+
+```julia
+julia> :(
+	A := B[3:0]
+)
+
+```
+
+However, the reason for its inclusion is
+
 1) Aid in code clarity
 2) Has specific impacts on the conversion to verilog
 
+
 ### Conversion to Verilog
 
-Occurs after parameterization
-the @async macro does two things
-	1) @async macro calls are directly converted into always @* function calls in verilog
-	2) any wire assigned within an @async macro will be converted to a reg
-	3) Any if-else statements inside of and @async will remain an if-else statement inside an always block, whereas if-elses outside @async will be turned into ? : calls
-The reason it might be desirable to use or not use @async macros is due to the intended hardware
-	FPGA compilation tends to improve with explicit ? : Mux calls, due to the poor quality of FPGA compilation software
-		Therefore, the @async macro may not be desired
-	ASIC compilation is done in dc_shell, where the existence of always blocks rather than ? : Mux calls is fairly insubstantial
-The @async macro can be used as a style choice
+Occurs after the parameterization and sanitization steps of preprocessing.
+
+The @async macro does three things:
+1) @async macro calls are directly converted into always @* function calls in verilog
+2) Aany wire assigned within an @async macro will be converted to a reg
+3) Any if-else statements inside of and @async will remain an if-else statement inside an always block, whereas if-elses outside @async will be turned into ? : calls
+
+The reason it might be desirable to use or not use @async macros is due to the intended hardware.
+
++ FPGA compilation tends to improve with explicit ? : Mux calls, due to the poor quality of FPGA compilation software. Therefore, the @async macro may not be desired
+
++ ASIC compilation is done in dc_shell, where the existence of always blocks rather than ? : Mux calls is fairly insubstantial
+
++ The @async macro can be also used as a style choice
 
 
 
@@ -702,24 +819,26 @@ The @async macro can be used as a style choice
 
 They are in here, but at present, are dumb. They only exist to aid in simulation.
 They can't be reasonably used to debug code, you should check parity with the testbench for that one. 
+
+```julia
 julia> A = Wire()[0]
 julia> A := 'x'
 julia> A := 'z'
-
+```
 
 ### Noticable Absences from the 0.1 release
 
-only works on 64 bit machines
-Absence of smart +, -, *, /, remainder
-matrix or bus notation
-working ifs, registers of any kind
++ Julia Simulation only works on 64 bit machines, with the 64 bit installation of Julia. Preprocessing, and conversion to Verilog does not carry this constraint
++ Absence of smart +, -, *, /, remainder
++ Matrix or Bus notation
++ Working ifs, registers of any kind
 
 
 ### Driving the same wire by multiple logic calls
 
-Is possible, will fuck up your shit.
-don't assign to the same bits more than once.
-I am in the process of checking for this. But it isn't certain yet.
+Is possible, will fuck up your shit.  
+Don't assign to the same bits more than once.  
+I am in the process of checking for this. But it isn't certain yet.  
 
 
 MOONSHOOT Stuff
@@ -742,15 +861,17 @@ Not necessary, but can be convienent
 
 NEXT UPDATE FUNCTIONALITY
 ---
-#TODO Tuples and vcats on left hand side of equations
 
-#TODO Julia Matrix Notation and Verilog Bus Notation
++ Tuples and vcats on left hand side of equations
 
-#TODO Supports writing values to ints, as opposed to vcat with 0s and 1s
++ Julia Matrix Notation and Verilog Bus Notation
 
-#TODO nonblocking operator <= is less than equal operator in Julia, consider changing
++ Supports writing values to ints, as opposed to vcat with 0s and 1s
 
-#TODO if statements support differing left hand side assignments
++ nonblocking operator <= is less than equal operator in Julia, consider changing
+
++ if statements support differing left hand side assignments
+
 
 TEST BENCH CONSTRUCTION
 ---
@@ -761,20 +882,15 @@ W.I.P.
 POTENTIAL FEATURES
 ---
 
-Polymorphic Matlab code (Write Once)
-Combinational Reduction
-Instances of algorithmic equivalences
-Intelligent and Power-saving bitlength decisions
-Atomic Units that print whenever a truncation has occurred
-	that keep track of bits flipped for power consumption
-Reversible logic so simulation can be played forward/backwards
-Visual graph which shows i.r.t what wire values are
-Recursion
-Multithreaded simulation
-	Determine trees of dependency, use to maximize multithreads
-Vulkan-accelerated xtor gate list
-	setup/hold times calculations can be SIMD
-CPU emulation running alongside Hardware simulation
-SPICE integration
-Stochastic delay modelling
-Easy Monte-Carlo simulations
++ Polymorphic Julia code (Write Once)
++ Combinational Reduction
++ Instances of algorithmic equivalences
++ Intelligent and Power-saving bitlength decisions
++ Reversible logic so simulation can be played forward/backwards
++ Visual graph which shows i.r.t what wire values are
++ Multithreaded simulation
++ Vulkan-accelerated xtor gate list
++ CPU emulation running alongside Hardware simulation
++ SPICE integration
++ Stochastic delay modelling
++ Easy Monte-Carlo simulations
