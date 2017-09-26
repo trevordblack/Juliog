@@ -1,32 +1,38 @@
-# Juliog
+## Juliog
 Open Source Verilog Based Hardware Description Language Written in the Julia Programming Language
 
 
 
-LOADING A JULIOG FUNCTION INTO JULIA
+#LOADING A JULIOG FUNCTION INTO JULIA
 -----------------------------------------------------------------------------------
 
-JULIOG functions cannot be directly parsed into the julia command-line or your operating system's command console
-They must first be parsed through a preprocesser to sanitize the syntax
-	and convert the (julia-esque) syntax to genuinely runnable julia code
+Juliog functions cannot be directly parsed into the julia command-line or your operating system's command console.
+They must first be parsed through a preprocesser to sanitize the syntax and convert the (julia-esque) syntax to genuinely runnable julia code
 
 There are 3 ways to input jg code for preprocessing
 
-1) Call the parsefile function on a jg file of interest
-	julia> func = parsefile(file_dir)
-		where file_dir is the file location as a string of where the jg function is found
-		e.g. 
-			julia> file_dir = "C:/Users/Trevor/Documents/full_adder.jl"
-			julia> func = parsefile(file_dir)
+1) Call the parsefile function on a juliog file of interest
 
-2) Through a quoted expression
+	```
+	julia> func = parsefile(file_dir)
+	```
+	
+	where file_dir is the file location as a string of where the juliog function is found
+
+	```
+	julia> file_dir = "C:/Users/Trevor/Documents/full_adder.jl"
+	julia> func = parsefile(file_dir)
+	```
+
+2) Through a blocked expression
+```
 	julia> func = :( 
 		function example(example_input, example_output)
 			# example implementation
 		end
 	)
 
-3) Through a blocked expression
+3) Through a quoted expression
 	julia> func = quote 
 		function example(example_input, example_output)
 			# example implementation
@@ -535,6 +541,7 @@ Driving the same wire by multiple logic calls
 	don't assign to the same bits more than once.
 	I am in the process of checking for this. But it isn't certain yet.
 
+
 MOONSHOOT Stuff
 ------------------------------------------------------------------------------------
 Combinational Reductions
@@ -547,6 +554,7 @@ Combinational Reductions
 Flatten function
     Removes any hierarchy from function, unrolls everything into top level
     Not necessary, but can be convienent
+
 
 NEXT UPDATE FUNCTIONALITY
 -----------------------------------------------------------------------------------
@@ -592,60 +600,3 @@ CPU emulation running alongside Hardware simulation
 SPICE integration
 Stochastic delay modelling
 Easy Monte-Carlo simulations
-
-
-PROBLEMS
------------------------------------------------------------------------------------
------------------------------------------------------------------------------------
-1) In Julia array indexing only allows for [a:b] where b > a
-	otherwise, Julia will interpret this as [a:a-1]
-	e.g. [7:0] will become [7:6] and the 0 will be lost
-	a) So, if the testbench is stock julia, then the tb must be written in little-endian
-		i.e. [a : >a] e.g. [0:7]
-	b) Effectively, any stock julia will need to be in little-endian,
-		and ONLY little-endian
-		this is why the GLJ has no endianness
-
-Possible Solution: Demand identical wires between parent and sub HWF
-	Throw errors in compilation if they mismatch
-2) Attaching Wires to HW functions has proved tricky
-	a) The wires which represent inputs and outputs of a HWF must be distinct wires from those outside
-		The reason for this is because if there's a fuckup and those wires don't match perfectly, then High Impedances are needed
-		I could just check for, and demand equal bit lengths
-	b) If they're distinct wires, then you can't just keep calling that wire's symbol
-		e.g. function(IN ...)
-				IN = Input()
-				blah = IN[5]
-		There are two things wrong here.
-			i) we are changing what the symbol IN refers to,
-				so from then on, IN is the local variable, not the argument
-			ii) We have failed to pass the arguments info onto the local variable
-				we would need to do something like this
-					IN = Input(IN)
-				Which just seems redundant and confusing
-					considering it's an empty wire declaration
-					A = Wire()
-		Alternatively, we could assign it
-			IN := Input()
-	c) Or, could just demand that they're the same wires
-		whereby IN = Input()
-		would be a completely unnecessary statement
-		same with OUT = Output()
-	d) I also haven't been strict about who gets to write to a wire
-		declaring a symbol an input or output could help at compilation time
-	e) Magnifying the problem of wire to HW functions is subfunctions
-		at present, the syntax is
-		function function_name Tuple
-			LOGIC name (,,,)
-		which is turned into
-		@block function function_name Tuple
-			@block LOGIC name (,,,)
-
-3) If indexed, bits of a larger wire are considered seperates wires
-	So if those indexed bits are changed, they will need to be CAT'd with other bits
-	if a wider index is ever called upon
-
-4) How the fuck do I monitor wires?
-	The testbench may or may not have explicit wires
-
-5) 
