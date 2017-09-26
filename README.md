@@ -18,7 +18,7 @@ There are 3 ways to input juliog code for loading
 julia> func = parsefile(file_dir)
 ```
 
-where file_dir is the file location as a string of where the juliog function is found
+  where file_dir is the file location as a string of where the juliog function is found
 
 ```julia
 julia> file_dir = "C:/Users/Trevor/Documents/full_adder.jl"
@@ -71,15 +71,15 @@ There are 4 ways to set parameters to a hardware design function
 
 1) Setting a local parameter
 
-  e.g. localparm in verilog
+   e.g. localparm in verilog
 
-  Just by calling an assignment within a juliog function
+   Just by calling an assignment within a juliog function
 
 ```julia
 	julia> this_param = 5
 ```
 
-  Can't be overwritten at a higher level
+   Can't be overwritten at a higher level
 
 2) Passing a parameter through function interface
 
