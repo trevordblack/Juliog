@@ -14,50 +14,50 @@ There are 3 ways to input juliog code for loading
 
 1) Call the parsefile function on a juliog file of interest
 
-	```julia
-	julia> func = parsefile(file_dir)
-	```
+```julia
+julia> func = parsefile(file_dir)
+```
 
 where file_dir is the file location as a string of where the juliog function is found
 
-	```julia
-	julia> file_dir = "C:/Users/Trevor/Documents/full_adder.jl"
-	julia> func = parsefile(file_dir)
-	```
+```julia
+julia> file_dir = "C:/Users/Trevor/Documents/full_adder.jl"
+julia> func = parsefile(file_dir)
+```
 
 2) Through a blocked expression
 
-	```julia
-	julia> func = :( 
-		function example(example_input, example_output)
-			# example implementation
-		end
-	)
-	```
+```julia
+julia> func = :( 
+	function example(example_input, example_output)
+		# example implementation
+	end
+)
+```
 
 3) Through a quoted expression
 
-	```julia
-	julia> func = quote 
-		function example(example_input, example_output)
-			# example implementation
-		end
+```julia
+julia> func = quote 
+	function example(example_input, example_output)
+		# example implementation
 	end
-	```
+end
+```
 
 Then once the Juliog has been entered into Julia as an Expr, run loadJULIOGexpr
 
-	```julia
-	julia> loadJULIOGexpr(func)
-	```
+```julia
+julia> loadJULIOGexpr(func)
+```
 
 Where func is the name of the inputted expression
 
 Then, for preprocessing, run @block
 
-	```julia
-	@block example "Arbitrary Block Name" (example_in, example_out)
-	```
+```julia
+@block example "Arbitrary Block Name" (example_in, example_out)
+```
 
 Where example is the name of the hardware function, "Arbitrary Block Name" is a the arbitary name of the hardware block implementation, and the tuple contains the names of testbench wires and parameters.
 
@@ -75,9 +75,9 @@ e.g. localparm in verilog
 
 Just by calling an assignment within a juliog function
 
-	```julia
-		julia> this_param = 5
-	``
+```julia
+	julia> this_param = 5
+```
 
 Can't be overwritten at a higher level
 
@@ -85,17 +85,17 @@ Can't be overwritten at a higher level
 
 if your hardware function has keywords they can be overwritten
 
-	```julia
-		julia> function LOGIC(OUT, IN ; passed_param = 8)
-			# LOGIC implementation
-		end
-	```
+```julia
+	julia> function LOGIC(OUT, IN ; passed_param = 8)
+		# LOGIC implementation
+	end
+```
 
 This then is called from above by:
 
-	```julia
-		julia> @block LOGIC "Clever_Name" (OUT_wire, IN_wire ; passed_param = 16)
-	```
+```julia
+	julia> @block LOGIC "Clever_Name" (OUT_wire, IN_wire ; passed_param = 16)
+```
 
 Where for the LOGIC hardware function, the passed_param has been overwritten
 
@@ -103,30 +103,30 @@ Where for the LOGIC hardware function, the passed_param has been overwritten
 	
 First create a module of parameters
 
-	```julia
-	julia> module my_parameters
-		word_length   = 32 
-		nibble_length = 4
-	end
-	```
+```julia
+julia> module my_parameters
+	word_length   = 32 
+	nibble_length = 4
+end
+```
 
 then import the module in your hardware function
 
-	```julia
-	julia> function LOGIC(OUT, IN)
-		import my_parameters
-		# LOGIC implementation
-	end
-	```
+```julia
+julia> function LOGIC(OUT, IN)
+	import my_parameters
+	# LOGIC implementation
+end
+```
 
 Alternatively, individual parameters can be requested
 
-	```julia
-	julia> function LOGIC(OUT, IN)
-		import my_parameters.word_length
-		import my_parameters.nibble_length
-	end
-	```
+```julia
+julia> function LOGIC(OUT, IN)
+	import my_parameters.word_length
+	import my_parameters.nibble_length
+end
+```
 
 4) Create a global parameter
 
@@ -136,18 +136,18 @@ Big advantage over verilog
 
 You can just set a large portion of your design according to a specific global param, greatly reducing code complexity
 
-	```julia
-	julia> function LOGIC(OUT, IN)
-		global global_param
-		# LOGIC implementation
-	end
-	```
+```julia
+julia> function LOGIC(OUT, IN)
+	global global_param
+	# LOGIC implementation
+end
+```
 
 Then, somewhere in the testbench, or in the console command-line
 	
-	```julia
-		julia> global global_param = 16
-	```
+```julia
+	julia> global global_param = 16
+```
 
 The parameterization step of preprocessing will take care the rest
 
@@ -159,24 +159,24 @@ There are 5(+1) ways to create a wire
 
 1) Create a wire of indeterminate bit length (not yet supported)
 
-	```julia
-	julia> indet_wire = Wire()
-	```
+```julia
+julia> indet_wire = Wire()
+```
 
 2) Create a wire of bit length 1
 
-	```julia
-	julia> bit_wire = Wire()[a] 
-	```
+```julia
+julia> bit_wire = Wire()[a] 
+```
 	
 where a is a non-negative Int
 
 
 3) Create a wire of bit length 1 or greater
 
-	```julia
-	julia> bus_wire = Wire()[a:b]
-	```
+```julia
+julia> bus_wire = Wire()[a:b]
+```
 
 where a and b are of type Int
 
@@ -189,38 +189,38 @@ both endians accepted:
 
 4) Assign a value to an undefined variable name
 
-	```julia
-	julia> isdefined(:new_wire) # this returns false
-	julia> new_wire = A & B # the := can also be used here 
-	```
+```julia
+julia> isdefined(:new_wire) # this returns false
+julia> new_wire = A & B # the := can also be used here 
+```
 
 The bit length of the new_wire will be determined by the bit length of the wire that the right hand side solves to (e.g. bit length of A and B)
 
 
 5) Assign a value to an undefined variable name of determinate bit length
 
-	```julia
-	julia> isdefined(:new_wire) # this returns false
-	julia> new_wire[7:0] = A & B # the := can also be used here 
-	```
+```julia
+julia> isdefined(:new_wire) # this returns false
+julia> new_wire[7:0] = A & B # the := can also be used here 
+```
 
 6) Maybe a vcat or a tuple (not yet implemented)
 
-	```julia
-	julia> [cout ; sum] := A + B
-	julia cout, sum := A + B
-	```
+```julia
+julia> [cout ; sum] := A + B
+julia cout, sum := A + B
+```
 
 output and input creation only allows for 1-3 above:
 
-	```julia
-	julia> indet_output = Output()
-	julia> indet_input  = Input()
-	julia> bit_output   = Output()[a]
-	julia> bit_input    = Input()[a]
-	julia> wire_input    = Input()[a:b]
-	julia> wire_output   = Output()[a:b]
-	```
+```julia
+julia> indet_output = Output()
+julia> indet_input  = Input()
+julia> bit_output   = Output()[a]
+julia> bit_input    = Input()[a]
+julia> wire_input    = Input()[a:b]
+julia> wire_output   = Output()[a:b]
+```
 
 Higher Dimensionality Wires (in progress, but not yet complete, do not use)
 
@@ -231,25 +231,24 @@ Just like any other higher-order programming language, Julia supports multidimen
 
 Juliog extends this functionality for the creation of multi-dimensional wires
 		
-	Multi-dimensional wires are commonly refered to as buses in Verilog parlance
+Multi-dimensional wires are commonly refered to as buses in Verilog parlance
 
 Buses of indeterminate width are not allowed, but the wires within can still be indeterminate 
 
-	```julia
-	julia> bus_bit_wires   = Wire()[a][c:d]
-	julia> bus_wires       = Wire()[a:b][c:d]
-	julia> bus_indet_wires = Wire()[][c:d]
-	```
+```julia
+julia> bus_bit_wires   = Wire()[a][c:d]
+julia> bus_wires       = Wire()[a:b][c:d]
+julia> bus_indet_wires = Wire()[][c:d]
+```
 
 The same is also capable for inputs and outputs, using same syntax
 
-	```julia
-	julia> bus_bit_inputs    =  Input()[a][c:d]
-	julia> bus_inputs        =  Input()[a:b][c:d]
-	julia> bus_bit_outputs   = Output()[a][c:d]
-	julia> bus_outputs       = Output()[a:b][c:d]
-	```
-
+```julia
+julia> bus_bit_inputs    =  Input()[a][c:d]
+julia> bus_inputs        =  Input()[a:b][c:d]
+julia> bus_bit_outputs   = Output()[a][c:d]
+julia> bus_outputs       = Output()[a:b][c:d]
+```
 
 ### Wire Assignments
 
@@ -257,17 +256,17 @@ Can be accomplished in 1 of 3 seperate ways
 
 1) using = operator after wire creation
 
-	```julia
-	julia> created_wire = Wire()
-	julia> created_wire = A & B
-	```
+```julia
+julia> created_wire = Wire()
+julia> created_wire = A & B
+```
 
 2) using := operator after wire creation
 
-	```julia
-	julia> created_wire = Wire()
-	julia> created_wire := A & B
-	```
+```julia
+julia> created_wire = Wire()
+julia> created_wire := A & B
+```
 
 Note that this is functionally equivalent to using the = operator at the gate level
 	
@@ -280,20 +279,20 @@ keeping assignments as := may improve code legibility
 
 3) Using = or := to declare an as of yet undeclared wire
 
-	```julia
-	julia> undeclared_wire = A & B
-	# OR
-	julia> undeclared_wire := A & B
-	```
+```julia
+julia> undeclared_wire = A & B
+# OR
+julia> undeclared_wire := A & B
+```
 
 A wire can also be assigned to a constant value
 
 But only after it is already created, otherwise the wire will be replaced through out the codebase with your static value
 
-	```julia
-	julia> const_25 = Wire()
-	julia> const_25 = 25
-	```
+```julia
+julia> const_25 = Wire()
+julia> const_25 = 25
+```
 
 TODO Add reverse indexing explanation
 
@@ -302,39 +301,61 @@ TODO Add reverse indexing explanation
 
 Indexing a wire on the right hand side of = or := is identical to verilog syntax
 
-	```julia
-	julia> word = Input()[7:0]
-	julia> upper_nibble = word[7:4]
-	julia> lower_nibble = word[3:0]
-	```
+```julia
+julia> word = Input()[7:0]
+julia> upper_nibble = word[7:4]
+julia> lower_nibble = word[3:0]
+```
 
 Alternatively, the following is also fine
 
-	```julia
-	julia> word = Input()[7:0]
-	julia> upper_nibble := word[7:4]
-	julia> lower_nibble := word[3:0]	
-	```
+```julia
+julia> word = Input()[7:0]
+julia> upper_nibble := word[7:4]
+julia> lower_nibble := word[3:0]	
+```
 
 ### Bit(s) Assignment
 
 The bits of a wire can be assigned on the left hand side
-	But only for a wire which has already been created
+	
+But only for a wire which has already been created
+
+```julia
 julia> upper_nibble = Input()[3:0]
 julia> lower_nibble = Input()[3:0]
 julia> nibbles = Wire()[7:0]
 julia> nibbles[7:4] = upper_nibble
 julia> nibbles[3:0] = lower_nibble
-The following would also be accepted
-...
+```
+
+The following two examples would also be accepted:
+
+```julia
+julia> upper_nibble = Input()[3:0]
+julia> lower_nibble = Input()[3:0]
+julia> nibbles = Wire()[7:0]
 julia> nibbles[7:4] = upper_nibble[3:0]
 julia> nibbles[3:0] = lower_nibble[3:0]	
+```
 
+```julia
+julia> upper_nibble = Input()[3:0]
+julia> lower_nibble = Input()[3:0]
+julia> nibbles = Wire()[7:0]
+julia> nibbles[7:4] := upper_nibble[3:0]
+julia> nibbles[3:0] := lower_nibble[3:0]	
+```
 But the following is NOT accepted, since nibbles was not previously created
+
+```julia
 julia> upper_nibble = Input()[3:0]
 julia> lower_nibble = Input()[3:0]
 julia> nibbles[7:4] = upper_nibble
 julia> nibbles[3:0] = lower_nibble
+```
+
+In this example, we are attempting to write to bits which we are not certain actually exist. There is a means by which this could be acceptable, but in the Juliog language, we ban it outright. Writing to specific bits of wires is only allowed if the wire is created *A Priori*.
 
 ### Bit Concatentation
 
