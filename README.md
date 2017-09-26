@@ -71,19 +71,18 @@ There are 4 ways to set parameters to a hardware design function
 
 1) Setting a local parameter
 
-   e.g. localparm in verilog
+   Behaves identically to  `localparm` in verilog
 
-   Just by calling an assignment within a juliog function
+   Just call an assignment within a juliog function  
+   This cannot be overwritten at a higher 
 
 ```julia
 	julia> this_param = 5
 ```
 
-   Can't be overwritten at a higher level
-
 2) Passing a parameter through function interface
 
-  if your hardware function has keywords they can be overwritten
+   if your hardware function has keywords they can be overwritten
 
 ```julia
 	julia> function LOGIC(OUT, IN ; passed_param = 8)
@@ -91,7 +90,7 @@ There are 4 ways to set parameters to a hardware design function
 	end
 ```
 
-  This then is called from above by:
+   This then is called from above by:
 
 ```julia
 	julia> @block LOGIC "Clever_Name" (OUT_wire, IN_wire ; passed_param = 16)
