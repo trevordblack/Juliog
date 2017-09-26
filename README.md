@@ -1,10 +1,10 @@
-## Juliog
+# Juliog
 Open Source Verilog Based Hardware Description Language Written in the Julia Programming Language
 
 
 
-#LOADING A JULIOG FUNCTION INTO JULIA
------------------------------------------------------------------------------------
+LOADING A JULIOG FUNCTION INTO JULIA
+---
 
 Juliog functions cannot be directly parsed into the julia command-line or your operating system's command console.
 They must first be parsed through a preprocesser to sanitize the syntax and convert the (julia-esque) syntax to genuinely runnable julia code
@@ -13,10 +13,10 @@ There are 3 ways to input jg code for preprocessing
 
 1) Call the parsefile function on a juliog file of interest
 
-	```
+	```julia
 	julia> func = parsefile(file_dir)
 	```
-	
+
 	where file_dir is the file location as a string of where the juliog function is found
 
 	```
@@ -25,19 +25,22 @@ There are 3 ways to input jg code for preprocessing
 	```
 
 2) Through a blocked expression
-```
+	```
 	julia> func = :( 
 		function example(example_input, example_output)
 			# example implementation
 		end
 	)
+	```
 
 3) Through a quoted expression
+	```
 	julia> func = quote 
 		function example(example_input, example_output)
 			# example implementation
 		end
 	end
+	```
 
 Then run preprocess on the returned function block
 	julia> preprocessed_func = preprocess(func)
