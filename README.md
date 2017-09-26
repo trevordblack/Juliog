@@ -49,16 +49,18 @@ Then once the Juliog has been entered into Julia as an Expr, run loadJULIOGexpr
 	Where func is the name of the inputted expression
 
 Then, for preprocessing, run @block
+
 	```julia
 	@block example "Arbitrary Block Name" (example_in, example_out)
 	```
+
 	Where example is the name of the hardware function, "Arbitrary Block Name" is a the arbitary name of the hardware block implementation, and the tuple contains the names of testbench wires and parameteres.
 
 
 JULIOG SYNTAX
 ---
 
-##How to set parameters
+## How to set parameters
 	
 There are 4 ways to set parameters to a hardware design function
 
@@ -68,36 +70,55 @@ There are 4 ways to set parameters to a hardware design function
 	Just by calling an assignment within a juliog function
 	```julia
 		julia> this_param = 5
-	``julia
+	``
+
 	Can't be overwritten at a higher level
 
 2) Passing a parameter through function interface
 
 	if your hardware function has keywords they can be overwritten
-	e.g.
+
+	```julia
 		julia> function LOGIC(OUT, IN ; passed_param = 8)
 			# LOGIC implementation
 		end
-		This then is called from above by:
+	```
+
+	This then is called from above by:
+
+	```julia
 		julia> @block LOGIC "Clever_Name" (OUT_wire, IN_wire ; passed_param = 16)
-		Where for the LOGIC hardware function, the passed_param has been overwritten
+	```
+
+	Where for the LOGIC hardware function, the passed_param has been overwritten
 
 3) Importing a modular parameter
 	First create a module of parameters
-		julia> module my_parameters
-			word_length   = 32 
-			nibble_length = 4
-		end
+
+	```julia
+	julia> module my_parameters
+		word_length   = 32 
+		nibble_length = 4
+	end
+	```
+
 	then import the module in your hardware function
-		julia> function LOGIC(OUT, IN)
-			import my_parameters
-			# LOGIC implementation
-		end
+
+	```julia
+	julia> function LOGIC(OUT, IN)
+		import my_parameters
+		# LOGIC implementation
+	end
+	```
+
 	Alternatively, individual parameters can be requested
-		julia> function LOGIC(OUT, IN)
-			import my_parameters.word_length
-			import my_parameters.nibble_length
-		end
+
+	```julia
+	julia> function LOGIC(OUT, IN)
+		import my_parameters.word_length
+		import my_parameters.nibble_length
+	end
+	```julia
 
 4) Create a global parameter
 	e.g. #define in Verilog
