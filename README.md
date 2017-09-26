@@ -56,10 +56,10 @@ Where func is the name of the inputted expression
 Then, for preprocessing, run @block
 
 ```julia
-@block example "Arbitrary Block Name" (example_in, example_out)
+julia> @block example "Arbitrary Block Name" (example_in, example_out)
 ```
 
-Where example is the name of the hardware function, "Arbitrary Block Name" is a the arbitary name of the hardware block implementation, and the tuple contains the names of testbench wires and parameters.
+Where `:example` is the name of the hardware function, `"Arbitrary Block Name"` is the arbitary name of the hardware block implementation, and `the Tuple` contains the names of testbench wires and parameters.
 
 
 JULIOG SYNTAX
@@ -71,19 +71,19 @@ There are 4 ways to set parameters to a hardware design function
 
 1) Setting a local parameter
 
-e.g. localparm in verilog
+  e.g. localparm in verilog
 
-Just by calling an assignment within a juliog function
+  Just by calling an assignment within a juliog function
 
 ```julia
 	julia> this_param = 5
 ```
 
-Can't be overwritten at a higher level
+  Can't be overwritten at a higher level
 
 2) Passing a parameter through function interface
 
-if your hardware function has keywords they can be overwritten
+  if your hardware function has keywords they can be overwritten
 
 ```julia
 	julia> function LOGIC(OUT, IN ; passed_param = 8)
@@ -91,17 +91,17 @@ if your hardware function has keywords they can be overwritten
 	end
 ```
 
-This then is called from above by:
+  This then is called from above by:
 
 ```julia
 	julia> @block LOGIC "Clever_Name" (OUT_wire, IN_wire ; passed_param = 16)
 ```
 
-Where for the LOGIC hardware function, the passed_param has been overwritten
+  Where for the LOGIC hardware function, the passed_param has been overwritten
 
 3) Importing a modular parameter
 	
-First create a module of parameters
+  First create a module of parameters
 
 ```julia
 julia> module my_parameters
@@ -110,7 +110,7 @@ julia> module my_parameters
 end
 ```
 
-then import the module in your hardware function
+  then import the module in your hardware function
 
 ```julia
 julia> function LOGIC(OUT, IN)
@@ -119,7 +119,7 @@ julia> function LOGIC(OUT, IN)
 end
 ```
 
-Alternatively, individual parameters can be requested
+  Alternatively, individual parameters can be requested
 
 ```julia
 julia> function LOGIC(OUT, IN)
@@ -128,13 +128,15 @@ julia> function LOGIC(OUT, IN)
 end
 ```
 
+  This follows the Julia Module syntax, see [Julia Stable Modules](https://docs.julialang.org/en/stable/manual/modules/)
+
 4) Create a global parameter
 
-e.g. #define in Verilog
+  e.g. #define in Verilog
 
-Big advantage over verilog
+  Big advantage over verilog
 
-You can just set a large portion of your design according to a specific global param, greatly reducing code complexity
+  You can just set a large portion of your design according to a specific global param, greatly reducing code complexity
 
 ```julia
 julia> function LOGIC(OUT, IN)
@@ -143,13 +145,13 @@ julia> function LOGIC(OUT, IN)
 end
 ```
 
-Then, somewhere in the testbench, or in the console command-line
+  Then, somewhere in the testbench, or in the console command-line
 	
 ```julia
 	julia> global global_param = 16
 ```
 
-The parameterization step of preprocessing will take care the rest
+  The parameterization step of preprocessing will take care the rest
 
 
 
@@ -169,7 +171,7 @@ julia> indet_wire = Wire()
 julia> bit_wire = Wire()[a] 
 ```
 	
-where a is a non-negative Int
+  where a is a non-negative Int
 
 
 3) Create a wire of bit length 1 or greater
@@ -178,14 +180,12 @@ where a is a non-negative Int
 julia> bus_wire = Wire()[a:b]
 ```
 
-where a and b are of type Int
+  where a and b are of non-negative Ints
 
-both are non-negative
+  a and b can be the same number, i.e. bit length of 1
 
-a and b can be the same number, e.g. bit length of 1
-
-both endians accepted:
-	Either a or b can be greater than the other
+  both endians accepted:
+  Either a or b can be greater than the other
 
 4) Assign a value to an undefined variable name
 
@@ -194,7 +194,8 @@ julia> isdefined(:new_wire) # this returns false
 julia> new_wire = A & B # the := can also be used here 
 ```
 
-The bit length of the new_wire will be determined by the bit length of the wire that the right hand side solves to (e.g. bit length of A and B)
+  The bit length of the new_wire will be determined by the bit length of the wire that the right hand side solves to.
+  For this example the bit length would be that of A and B
 
 
 5) Assign a value to an undefined variable name of determinate bit length
@@ -222,12 +223,13 @@ julia> wire_input    = Input()[a:b]
 julia> wire_output   = Output()[a:b]
 ```
 
-Higher Dimensionality Wires (in progress, but not yet complete, do not use)
 
-# TODO mention difference between Julia matrix syntax and verilog bus syntax
+### Higher Dimensionality Wires (in progress, but not yet complete, do not use)
+
+TODO This section needs fleshing out
+TODO mention difference between Julia matrix syntax and verilog bus syntax
 
 Just like any other higher-order programming language, Julia supports multidimentional arrays
-
 
 Juliog extends this functionality for the creation of multi-dimensional wires
 		
@@ -268,14 +270,12 @@ julia> created_wire = Wire()
 julia> created_wire := A & B
 ```
 
-Note that this is functionally equivalent to using the = operator at the gate level
+ Note that this is functionally equivalent to using the = operator at the gate level
 	
-The = operator is converted to the := operator in preprocessing and the := is ultimately used for conversion to gate-level
+ The = operator is converted to the := operator in preprocessing and the := is ultimately used for assignment once converting to Verilog and Julia
 
 
-A reason the designer may choose to use := over = is for ease of code clarity
-
-keeping assignments as := may improve code legibility
+  A reason the designer may choose to use := over = is for ease of code clarity, keeping assignments as := may improve code legibility
 
 3) Using = or := to declare an as of yet undeclared wire
 
@@ -294,6 +294,13 @@ julia> const_25 = Wire()
 julia> const_25 = 25
 ```
 
+Whereas the following will not create a wire, but will create a parameter
+
+```julia
+julia> const_25 = 25
+```
+
+
 TODO Add reverse indexing explanation
 
 
@@ -307,7 +314,7 @@ julia> upper_nibble = word[7:4]
 julia> lower_nibble = word[3:0]
 ```
 
-Alternatively, the following is also fine
+Of course, the colon-equals operator is also fine
 
 ```julia
 julia> word = Input()[7:0]
@@ -346,7 +353,11 @@ julia> nibbles = Wire()[7:0]
 julia> nibbles[7:4] := upper_nibble[3:0]
 julia> nibbles[3:0] := lower_nibble[3:0]	
 ```
-But the following is NOT accepted, since nibbles was not previously created
+
+Note that again, the colon-equals operator is acceptable for assignment. It is, not, however acceptable to use a colon-equals operator for wire or I/O creation. The equals operator is exclusive for this operation
+
+
+Not also, that the following is NOT accepted, since nibbles was not previously created
 
 ```julia
 julia> upper_nibble = Input()[3:0]
@@ -359,26 +370,40 @@ In this example, we are attempting to write to bits which we are not certain act
 
 ### Bit Concatentation
 
-the bits of any two or more wires can be concatenated in the following mannor
-e.g.
-	julia> combined = Wire()
-	julia> combined = [a ; b]     # for 2 wires
-	julia> combined = [a ; b ; c] # for 3 wires
-	julia> # can be extended for any number of wires
+The bits of any two or more wires can be concatenated in the following manner
+
+```julia
+julia> combined = Wire()
+julia> combined = [a ; b]     # for 2 wires
+julia> combined = [a ; b ; c] # for 3 wires
+julia> # can be extended for any number of wires
+```
+
 The wires of interest can, of course, be the indexed bit(s) of a larger wire
-	julia> combined = [a[3:0] ; a[1:0] ; b[5:0]]
+
+```julia
+julia> combined = [a[3:0] ; a[1:0] ; b[5:0]]
+```
 
 ### Bit Repetition
 
 A wire's bit(s) can be concatenated to itself a set number of times
-e.g.
-	julia> bit_repeats = a(repeats)
-		where a is a wire, and repeats is an integer
-These can also be concatened just as above
-	julia> complicated = [ a(repeats) ; a[1:0](8) ; b[1:0] ]
+
+```julia
+julia> bit_repeats = a(repeats)
+```
+
+Where a is a wire, and repeats is an integer
+
+These can also be concatened just as above:
+
+```julia
+julia> complicated = [ a(repeats) ; a[1:0](8) ; b[1:0] ]
+```
 
 ### Supported Logic Functions
 
+```julia
 & - AND
 | - OR
 ~ - NOT
@@ -416,47 +441,40 @@ These can also be concatened just as above
 	It is therefore completely indistinguishable from an if-else statement
 Latch - through special logic see below
 Reg   - through special logic see below
+```
 
 Unitary & and | not yet supported, support is in decision
 
 
 ### Instantiating other hardware functions
 
-	julia> :(
-		function LOGIC(OUT, IN)
-		# LOGIC implementation
+```julia
+julia> :(
+	function LOGIC(OUT, IN)
+	# LOGIC implementation
 
-		OTHER_LOGIC the_other_logic (ol_output, my_val)
+	@block OTHER_LOGIC "the_other_logic" (ol_output, my_val)
 
-		# More LOGIC implementation
-		end
-	)
+	# More LOGIC implementation
+	end
+)
+```
 
-	Can also be named by a string
-	julia> :(
-		function LOGIC(OUT, IN)
-		# LOGIC implementation
+Strings in block names enable interpolation, which can then be used to dynamically change name at compile time:
 
-		OTHER_LOGIC "the_other_logic" (ol_output, my_val)
+```julia
+julia> :(
+	function LOGIC(OUT, IN)
+	# LOGIC implementation
 
-		# More LOGIC implementation
-		end
-	)
-	Strings may be preferred because interpolation can be used to dynamically change name
-	e.g.
-	julia> :(
-		function LOGIC(OUT, IN)
-		# LOGIC implementation
+	for i = 1:n
+		OTHER_LOGIC "logic_$(i)" (ol_output[i], my_val)
+	end
 
-		for i = 1:n
-			OTHER_LOGIC "logic_$(i)" (ol_output[i], my_val)
-		end
-
-		# More LOGIC implementation
-		end
-	)
-
-
+	# More LOGIC implementation
+	end
+)
+```
 
 
 ### if-else constructs
