@@ -803,26 +803,6 @@ However, the reason for its inclusion is
 2) Has specific impacts on the conversion to verilog
 
 
-Conversion to Verilog
----
-
-Occurs after the parameterization and sanitization steps of preprocessing.
-
-The @async macro does three things:
-1) @async macro calls are directly converted into always @* function calls in verilog
-2) Aany wire assigned within an @async macro will be converted to a reg
-3) Any if-else statements inside of and @async will remain an if-else statement inside an always block, whereas if-elses outside @async will be turned into ? : calls
-
-The reason it might be desirable to use or not use @async macros is due to the intended hardware.
-
-+ FPGA compilation tends to improve with explicit ? : Mux calls, due to the poor quality of FPGA compilation software. Therefore, the @async macro may not be desired
-
-+ ASIC compilation is done in dc_shell, where the existence of always blocks rather than ? : Mux calls is fairly insubstantial
-
-+ The @async macro can be also used as a style choice
-
-
-
 ### Inclusion of Don't Cares and High Impedances
 
 They are in here, but at present, are dumb. They only exist to aid in simulation.
@@ -834,31 +814,39 @@ julia> A := 'x'
 julia> A := 'z'
 ```
 
-### Noticable Absences from the 0.1 release
-
-+ Julia Simulation only works on 64 bit machines, with the 64 bit installation of Julia. Preprocessing, and conversion to Verilog does not carry this constraint
-+ Absence of smart +, -, *, /, remainder
-+ Matrix or Bus notation
-+ Working ifs, registers of any kind
-
-
 ### Driving the same wire by multiple logic calls
 
 Is possible, will fuck up your shit.  
 Don't assign to the same bits more than once.  
 I am in the process of checking for this. But it isn't certain yet.  
 
-
-MOONSHOOT Stuff
+CONVERSION TO VERILOG
 ---
 
-+ Combinational Reductions
-    
-  Trace a path of operations e.g. [& & | + - ^] from input to reg, reg to reg, reg to output have a list of combinational reduction equivalences
+Occurs after the parameterization and sanitization steps of preprocessing.
 
-+ Flatten function:
+The @async macro does three things:
+1) @async macro calls are directly converted into always @* function calls in verilog
+2) Any wire assigned within an @async macro will be converted to a reg
+3) Any if-else statements inside of and @async will remain an if-else statement inside an always block, whereas if-elses outside @async will be turned into ? : calls
 
-  Removes any hierarchy from function, unrolls everything into top level
+The reason it might be desirable to use or not use @async macros is due to the intended hardware.
+
++ FPGA compilation tends to improve with explicit ? : Mux calls, due to the poor quality of FPGA compilation software. Therefore, the @async macro may not be desired
+
++ ASIC compilation is done in dc_shell, where the existence of always blocks rather than ? : Mux calls is fairly insubstantial
+
++ The @async macro can be also used as a style choice
+
+CURRENT RELEASE
+---
+
+### Noticable Absences from the 0.1 release
+
++ Julia Simulation only works on 64 bit machines, with the 64 bit installation of Julia. Preprocessing, and conversion to Verilog does not carry this constraint
++ Absence of smart +, -, *, /, remainder
++ Matrix or Bus notation
++ Working ifs, registers of any kind
 
 
 NEXT UPDATE FUNCTIONALITY
@@ -873,12 +861,6 @@ NEXT UPDATE FUNCTIONALITY
 + nonblocking operator <= is less than equal operator in Julia, consider changing
 
 + if statements support differing left hand side assignments
-
-
-TEST BENCH CONSTRUCTION
----
-
-W.I.P.
 
 
 POTENTIAL FEATURES
@@ -896,3 +878,20 @@ POTENTIAL FEATURES
 + SPICE integration
 + Stochastic delay modelling
 + Easy Monte-Carlo simulations
+
+MOONSHOOT Stuff
+---
+
++ Combinational Reductions
+    
+  Trace a path of operations e.g. [& & | + - ^] from input to reg, reg to reg, reg to output have a list of combinational reduction equivalences
+
++ Flatten function:
+
+  Removes any hierarchy from function, unrolls everything into top level
+
+
+TEST BENCH CONSTRUCTION
+---
+
+W.I.P.
