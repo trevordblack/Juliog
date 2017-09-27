@@ -669,3 +669,39 @@ function JJmacro(ex::Expr)
         error("Hit an unexplored macrocall $(mc) in expr:\n$(ex)")
     end
 end
+
+
+
+
+
+
+
+
+
+
+#=
+
+    # Can't be reduced to a single wire, so create a new wire
+    wireName = "if!" * toString(ex.args[2]) * "_" * toString(ex.args[3]) * "!!"
+    i = 0
+    wireNamei = Symbol(wireName * dec(i))
+    while haskey(arrowDict, wireNamei)
+        i = i + 1
+        wireNamei = Symbol(wireName * dec(i))
+    end
+
+    jargs = Array{Any}(2)
+    jargs[1] = Expr(:(=), wireNamei, Expr(:(ref), Expr(:call, :Wire), 0))
+    jargs[2] = Expr(:(:=), wireNamei, ex)
+
+function toString(name)
+    if isa(name ,Symbol)
+        return String(name)
+    elseif isa(name, Int)
+        return dec(name)
+    else
+        return string(name)
+    end
+end
+
+=#
