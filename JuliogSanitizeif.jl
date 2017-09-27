@@ -96,98 +96,14 @@ end
 
 
 function JSifblock(ex::Expr)
-    elseargs = Array{Any}(0)
-    condition = ex.args[1]
-
-    l = length(ex.args)
-    if l == 3 
-        ifargs = Array{Any}(0)
-        l = length(ex.args[2].args)
-        for i = 1:l
-            arg = ex.args[2].args[i]
-            h = arg.head
-            if     h == :(=)
-                JSifblockequals(arg)
-                push!(ifargs, arg)
-            elseif h == :if
-                args = JSifblock(arg)
-                append!(ifargs, args)
-            else
-                error("Found incorrect expr head $(h) in if expr:\n$(ex)")                
-            end
-        end  
-        l = length(ifargs)
-        ifargsname = Array{Symbol}(l)
-        ifargslhs = Array{Any}(l)
-        for i = 1:l
-            arg = ifargs[i]
-            lhs = arg.args[1]
-            ifargslhs = lhs
-            if isa(lhs, Expr)
-                # Must be a reference
-                # MOON
-                ifargsname[i] = lhs.args[1] 
-            else
-                # Must be a symbol
-                ifargsname[i] = lhs
-            end
-        end
-
-
-        l = length(ex.args[3].args)
-        for i = 1:l                
-            arg = ex.args[3].args[i]
-            h = arg.head
-            if     h == :(=)
-                JSifblockequals(arg)
-                push!(elseargs, arg)
-            elseif h == :if
-                args = JSifblock(arg)
-                append!(elseargs, args)
-            else
-                error("Found incorrect expr head $(h) in if expr:\n$(ex)")                
-            end
-        end   
-        l = length(elseargs)
-        elseargsname = Array{Symbol}(l)
-        elseargslhs = Array{Any}(l)
-        for i = 1:l
-            arg = elseargs[i]
-            lhs = arg.args[1]
-            elseargslhs = lhs
-            if isa(lhs, Expr)
-                # Must be a reference
-                # MOON
-                elseargsname[i] = lhs.args[1] 
-            else
-                # Must be a symbol
-                elseargsname[i] = lhs
-            end
-        end
-
-
-        # TODO this for loop
-        # compare ifargs against elseargs
-        for i = 1:l
-            lhs = ifargs[i].args[1]
-            if isa(lhs, Expr)
-                # MOON matrix notation
-                name = lhs.args[1]
-            else
-                # Is a symbol
-                name = lhs
-            end
-
-
-            jarg = jargs[j]
-            jargs[j].args[2] = Expr(:if, condition, jarg.args[2], jarg.args[1])
-        end
-
-        append!(jargs, ifargs)
-        ex.args[2].args[i] = jexpr 
-
-
+    # Need to recuresively search for nested if statements
+    if length(ex.args) == 3 
+        # Has both an if statement and an else statement
+        # We may need to merge if assignments and else statements
+        return JSifblockhelper(ex)
     else
+        # No else statement so just raise the if block
+        elseargs = Array{Any}(0)
         l = length(ex.args[2].args)
         for i = 1:l
             arg = ex.args[2].args[i]
@@ -204,13 +120,82 @@ function JSifblock(ex::Expr)
         l = length(elseargs)
         for i = 1:l
             arg = elseargs[i]
-            elseargs[i].args[2] = Expr(:if, condition, arg.args[2], arg.args[1])
+            elseargs[i].args[2] = Expr(:if, ex.args[1], arg.args[2], arg.args[1])
             warn("Latch of expr $(elseargs[i].args[2]) created in if expr:\n$(ex)")
         end
         return elseargs
     end 
 end
 
+function JSifblockhelper(ex::Expr)
+    ifargs = Array{Any}(0)    
+    elseargs = Array{Any}(0)
+
+    # Iterate through if statements and create if-assignments
+    l = length(ex.args[2].args)
+    for i = 1:l
+        arg = ex.args[2].args[i]
+        h = arg.head
+        if     h == :(=)
+            JSifblockequals(arg)
+            push!(ifargs, arg)
+        elseif h == :if
+            args = JSifblock(arg)
+            append!(ifargs, args)
+        else
+            error("Found incorrect expr head $(h) in if expr:\n$(ex)")                
+        end
+    end  
+    l = length(ifargs)
+    # loop through to find redundancy in ifargs
+    ifargslhs = Array{Any}(l)
+    for i = 1:l
+        lhs = ifargs[i].args[1]
+        if find(ifargslhs .== lhs) != []
+            error("Attempting to write to lhs of $(ifargs[i]) in:\n$(ex)")
+        end
+        ifargslhs[i] = lhs
+    end
+
+    # Iterate through else statements and create if-assignments
+    l = length(ex.args[3].args)
+    for i = 1:l                
+        arg = ex.args[3].args[i]
+        h = arg.head
+        if     h == :(=)
+            JSifblockequals(arg)
+            push!(elseargs, arg)
+        elseif h == :if
+            args = JSifblock(arg)
+            append!(elseargs, args)
+        else
+            error("Found incorrect expr head $(h) in if expr:\n$(ex)")                
+        end
+    end   
+    l = length(elseargs)
+    # loop through to find redundancy in elseargs
+    elseargslhs = Array{Any}(l)
+    for i = 1:l
+        lhs = elseargs[i].args[1]
+        if find(elseargslhs .== lhs) != []
+            error("Attempting to write to lhs of $(elseargs[i]) in:\n$(ex)")
+        end
+        elseargslhs[i] = lhs
+    end
+
+    # compare ifargs against elseargs
+    jargs = Array{Any}(0)
+    for i = 1:l
+
+
+
+        jarg = jargs[j]
+        jargs[j].args[2] = Expr(:if, condition, jarg.args[2], jarg.args[1])
+    end
+
+    append!(jargs, ifargs)
+    ex.args[2].args[i] = jexpr 
+end
 
 function JSifblockequals(ex::Expr)
     # Check rhs correctness
