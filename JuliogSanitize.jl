@@ -161,9 +161,11 @@ function JSblockhelper(ex::Expr)
         return JSequals(ex)
     elseif h == :(:=)
         return JSassignment(ex)
-    elseif h == :if 
+    elseif h == :if
+        error("If statements are not completed in JuliogSanitize") 
         return JSif(ex)
     elseif h == :macrocall
+        error("Macro statements are not completed in JuliogSanitize") 
         return JSmacro(ex)
     else
         error("hit unexpected call $(j) in JSblockhelper:\n$(ex)")
