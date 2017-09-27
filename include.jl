@@ -1,4 +1,4 @@
-#include("D:/Box Sync/git/Juliog/JuliogParameterize.jl")
+include("D:/Box Sync/git/Juliog/JuliogParameterize.jl")
 #include("D:/Box Sync/git/Juliog/JuliogSanitize.jl")
 #include("D:/Box Sync/git/Juliog/JULIOGtoVerilog.jl")
 #include("D:/Box Sync/git/Juliog/JULIOGtoJulia.jl")
