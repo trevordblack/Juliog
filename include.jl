@@ -1,5 +1,7 @@
 include("D:/Box Sync/git/Juliog/JuliogParameterize.jl")
 include("D:/Box Sync/git/Juliog/JuliogSanitize.jl")
+include("D:/Box Sync/git/Juliog/JuliogSanitizeif.jl")
+#include("D:/Box Sync/git/Juliog/JuliogSanitizemacro.jl")
 include("D:/Box Sync/git/Juliog/JULIOGtoVerilog.jl")
 #include("D:/Box Sync/git/Juliog/JULIOGtoJulia.jl")
 include("D:/Box Sync/git/Juliog/Juliog.jl")

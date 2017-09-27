@@ -1,5 +1,3 @@
-
-
 function JSmacro(ex::Expr)
     mc = ex.args[1]
     if     mc == Symbol("@async")
@@ -39,7 +37,7 @@ function JSasync(ex::Expr)
     JSnonblock(ex.args[2].args[1], ex.args[2].args[1])
 
     # Descend into the async and recursively do stuff
-    ex.args[2].args[1] = JSreghelper(ex.args[2].args[1])
+    ex.args[2].args[1] = JSmacrohelper(ex.args[2].args[1])
 end
 
 function JSreg(ex::Expr)
@@ -78,7 +76,7 @@ function JSreg(ex::Expr)
     ex.args[2].args[1] = JSregequals(ex.args[2].args[1])
 
     # Descend into the reg and recursively do stuff
-    ex.args[2].args[1] = JSreghelper(ex.args[2].args[1])
+    ex.args[2].args[1] = JSmacrohelper(ex.args[2].args[1])
 
     # Turn :(=) into :(<=)
     ex.args[2].args[1] = JSregnonblocking(ex.args[2].args[1])
@@ -150,7 +148,7 @@ function JSedgereg(ex::Expr)
     ex.args[2].args[1] = JSregequals(ex.args[2].args[1])
 
     # Descend into the reg and recursively do stuff
-    ex.args[2].args[1] = JSreghelper(ex.args[2].args[1])
+    ex.args[2].args[1] = JSmacrohelper(ex.args[2].args[1])
 
     # Turn :(=) into :(<=)
     ex.args[2].args[1] = JSregnonblocking(ex.args[2].args[1])
@@ -159,8 +157,9 @@ end
 # TODO this stuff
 # Throw an error if all wires are not written to
 # Create wires if needed, change to regs as needed
-# Accomodate for ifs when they show up
-function JSreghelper(ex::Expr)
+# Accomodate for ifs when they show up,
+# for ifs turn condition into JIR
+function JSmacrohelper(ex::Expr)
 
 end
 

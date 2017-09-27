@@ -95,43 +95,19 @@ function JSifcond(ex::Expr)
 end
 
 
-
-
-
-
-
-# TODO from here on needs touching up
-
-mutable struct ifArrow
-    Endian::Int
-        # 0 -> Undeclared
-        # 1 -> Big Endian
-        # 2 -> Little Endian
-    BitLeft::Int
-    BitRight::Int
-    BitCount::Int
-    Assigned::Int
-        # 0 -> Unassigned
-        # 1 -> Assigned
-        # 2 -> Bitwise Assigned
-    AsgnArray::Array{Int}
-end
-
 function JSifblock(ex::Expr)
     elseargs = Array{Any}(0)
     condition = ex.args[1]
 
     l = length(ex.args)
     if l == 3 
-        ifArrowDict = Dict{Symbol, ifArrow}()
-        elseArrowDict = Dict{Symbol, ifArrow}()
         ifargs = Array{Any}(0)
         l = length(ex.args[2].args)
         for i = 1:l
             arg = ex.args[2].args[i]
             h = arg.head
             if     h == :(=)
-                JSifblockequals(arg, ifArrowDict)
+                JSifblockequals(arg)
                 push!(ifargs, arg)
             elseif h == :if
                 args = JSifblock(arg)
@@ -140,13 +116,30 @@ function JSifblock(ex::Expr)
                 error("Found incorrect expr head $(h) in if expr:\n$(ex)")                
             end
         end  
-        
+        l = length(ifargs)
+        ifargsname = Array{Symbol}(l)
+        ifargslhs = Array{Any}(l)
+        for i = 1:l
+            arg = ifargs[i]
+            lhs = arg.args[1]
+            ifargslhs = lhs
+            if isa(lhs, Expr)
+                # Must be a reference
+                # MOON
+                ifargsname[i] = lhs.args[1] 
+            else
+                # Must be a symbol
+                ifargsname[i] = lhs
+            end
+        end
+
+
         l = length(ex.args[3].args)
         for i = 1:l                
             arg = ex.args[3].args[i]
             h = arg.head
             if     h == :(=)
-                JSifblockequals(arg, elseargs)
+                JSifblockequals(arg)
                 push!(elseargs, arg)
             elseif h == :if
                 args = JSifblock(arg)
@@ -155,11 +148,26 @@ function JSifblock(ex::Expr)
                 error("Found incorrect expr head $(h) in if expr:\n$(ex)")                
             end
         end   
+        l = length(elseargs)
+        elseargsname = Array{Symbol}(l)
+        elseargslhs = Array{Any}(l)
+        for i = 1:l
+            arg = elseargs[i]
+            lhs = arg.args[1]
+            elseargslhs = lhs
+            if isa(lhs, Expr)
+                # Must be a reference
+                # MOON
+                elseargsname[i] = lhs.args[1] 
+            else
+                # Must be a symbol
+                elseargsname[i] = lhs
+            end
+        end
+
 
         # TODO this for loop
         # compare ifargs against elseargs
-        l = length(ifargs)
-        m = length(elseargs)
         for i = 1:l
             lhs = ifargs[i].args[1]
             if isa(lhs, Expr)
@@ -204,21 +212,21 @@ function JSifblock(ex::Expr)
 end
 
 
-function JSifblockequals(ex::Expr, ifAD::Dict{Symbol, ifArrow})
+function JSifblockequals(ex::Expr)
     # Check rhs correctness
     bcrhs, endirhs = JSrhs(ex.args[2])
 
     # check lhs correctness
     if isa(ex.args[1], Expr)
         # lhs is a reference
-        JSifblockequalsref(ifAD, ex, bcrhs, endirhs)
+        JSifblockequalsref(ex, bcrhs, endirhs)
     else
         # lhs is just a symbol for a wire
-        JSifblockequalssymbol(ifAD, ex, bcrhs, endirhs)
+        JSifblockequalssymbol(ex, bcrhs, endirhs)
     end    
 end
 
-function JSifblockequalsref(ifAD::Dict{Symbol, ifArrow}, ex::Expr, bcrhs::Int, endirhs::Int)
+function JSifblockequalsref(ex::Expr, bcrhs::Int, endirhs::Int)
     # LHS is a reference
     #   Maybe a vcat or tuple, can't do anything about that yet
     name = ex.args[1].args[1]
@@ -275,7 +283,7 @@ function JSifblockequalsref(ifAD::Dict{Symbol, ifArrow}, ex::Expr, bcrhs::Int, e
     pushArrowBitsJSif(ifAD, name, endilhs, bl,br,bclhs)
 end
 
-function JSifblockequalssymbol(ifAD::Dict{Symbol, ifArrow}, ex::Expr, bcrhs::Int, endirhs::Int)
+function JSifblockequalssymbol(ex::Expr, bcrhs::Int, endirhs::Int)
     # Must be a wire name
     name = ex.args[1]
 
@@ -288,57 +296,4 @@ function JSifblockequalssymbol(ifAD::Dict{Symbol, ifArrow}, ex::Expr, bcrhs::Int
             warn("Truncation of Bits necessitated: $(bclhs) bit on lh, and $(bcrhs) bits on rhs:\n$(ex)")
         end
     end
-
-    pushArrowJSif(ifAD, name, endirhs, bl,br,bcrhs)
 end
-
-
-function pushArrowJSif(ifAD::Dict{Symbol, ifArrow}, name::Symbol, endi::Int, bl::Int, br::Int, bc::Int)
-    if haskey(ifAD, name)
-        error("Attempting to assign a whole wire after assignment: $(name)")
-    else
-        # Creating a whole new wire
-        ifAD[name] = ifArrow(endi, bl, br, bc, 1, fill!(Array{Int}(bc), 1))
-    end
-end
-
-function pushArrowBitsJSif(ifAD::Dict{Symbol, ifArrow}, name::Symbol, endi::Int, bl::Int, br::Int, bc::Int)
-    if haskey(ifAD, name)
-        a = ifAD[name]
-        if     a.Assigned == 1
-            error("Attempting to assign individual bits after a whole wire assignment: $(name)")
-        elseif a.Assigned == 0
-            # this is likely an erroneous error statement, and likely needs removing
-            if     a.Endian == 0 && bc > 1
-                error("Attempting to assign multiple bits of a wire which lacks Endianness: $(name)")
-            end
-            ifAD[name].Assigned = 2
-        end
-
-        minb = min(bl, br)
-        maxb = max(bl, br)
-        arrowminb = min(a.BitRight, a.BitLeft)
-        arrowmaxb = max(a.BitRight, a.BitLeft)
-        if     minb < arrowminb
-            error("Attempting to assign bit $(minb) which is outside $(name)")
-        elseif maxb > arrowmaxb
-            error("Attempting to assign bit $(maxb) which is outside $(name)")
-        end
-
-        if a.Assigned == 2
-            overwrites = find(ifAD[name].AsgnArray[(minb-arrowminb+1):(maxb-arrowminb+1)] != 0)
-            if overwrites != []
-                error("Assigning to bits $(overwrites + minb + arrowminb) after they were already assigned: $(name)")
-            end            
-        end
-
-        tmp = maximum(ifAD[name].AsgnArray) + 1
-        ifAD[name].AsgnArray[(minb-arrowminb+1):(maxb-arrowminb+1)] = tmp
-    else
-        # Creating a whole new wire
-        ifAD[name] = ifArrow(endi, bl, br, bc, 2, fill!(Array{Int}(bc), 1))        
-    end
-end
-
-
-

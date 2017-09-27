@@ -860,7 +860,7 @@ NEXT UPDATE FUNCTIONALITY
 
 + nonblocking operator <= is less than equal operator in Julia, consider changing
 
-+ if statements support differing left hand side assignments
++ if statements support differing left hand side assignments. At present, the lhs side of any statement in an if block (outside of macros) has a dumb way of matching.
 
 
 POTENTIAL FEATURES
