@@ -258,10 +258,22 @@ function JVrhscall(ex::Expr)
     end
 end
 
-# TODO Accomodate the new condition rules (e.g. a cond will just be a ~, symbol, or ref)
 function JVrhsif(ex::Expr)
     # reduce condition to a single bit if acceptable
-    verilog = "(" * JVrhsifcondition(ex.args[1]) * ") ? "
+    condition = ex.args[1]
+    if     isa(condition, Expr)
+        verilog = "(" * JVrhsref(condition) * ") ? "
+    elseif isa(condition, Symbol)
+        verilog = "(" * String(condition) * ") ? "
+    else
+        # Must be an array
+        verilog = "(" * condition[1]
+        if isa(condition[2], Expr)
+            verilog = verilog * JVrhsref(condition[2]) * ") ? "
+        else
+            verilog = verilog * String(condition[2]) * ") ? "
+        end
+    end
 
     # Must have 3 args after sanitization step
     arg = ex.args[1]
@@ -291,104 +303,7 @@ function JVrhsif(ex::Expr)
     return verilog
 end
 
-
-# This whole thing can probably get thrown out
-function JVrhsifcondition(ex::Expr)
-    # Can reduce if either of the operands are 0, 1
-    #  And if the condition is only a single bit
-    #  This requires importing JS functions to determine bit count
-    reducible = false
-    if     ex.args[2] == 0 || ex.args[2] == 1
-        arg = ex.args[3]
-        if     isa(arg, Expr) && arg.head == :ref
-            bc, endi = JSreadrhsref(arg)
-            if bc == 1
-                reducible = true            
-                argstr = JVrhsref(arg)
-            end            
-        elseif isa(arg, Expr) && arg.head == :vcat
-            bc, endi = JSreadrhsvcat(arg)
-            if bc == 1
-                reducible = true
-                argstr = JVrhsvcat(arg)
-            end
-        elseif isa(arg, Symbol)
-            global arrowDict
-            if arrowDict[arg].BitCount == 1
-                reducible = true
-                argstr = String(arg)
-            end
-        else
-            error("In JVrhsifcondition, Attempting to if with condition $(arg) in expr: $(ex)")
-        end
-
-        if reducible
-            return (ex.args[2] == 1) ? argstr : ("~" * argstr)
-        end
-    elseif ex.args[3] == 0 || ex.args[3] == 1
-        arg = ex.args[2]
-        if     isa(arg, Expr) && arg.head == :ref
-            bc, endi = JSreadrhsref(arg)
-            if bc == 1
-                reducible = true            
-                argstr = JVrhsref(arg)
-            end            
-        elseif isa(arg, Expr) && arg.head == :vcat
-            bc, endi = JSreadrhsvcat(arg)
-            if bc == 1
-                reducible = true
-                argstr = JVrhsvcat(arg)
-            end
-        elseif isa(arg, Symbol)
-            global arrowDict
-            if arrowDict[arg].BitCount == 1
-                reducible = true
-                argstr = String(arg)
-            end
-        else
-            error("In JVrhsifcondition, Attempting to if with condition $(arg) in expr: $(ex)")
-        end
-
-        if reducible
-            return (ex.args[3] == 1) ? argstr : ("~" * argstr)
-        end
-    end
-
-    # Cannot be further reduced, convert directly to String
-    arg = ex.args[2]
-    if     isa(arg, Expr) && arg.head == :ref
-        argstr = JVrhsref(arg)
-    elseif isa(arg, Expr) && arg.head == :vcat
-        argstr = JVrhsvcat(arg)
-    elseif isa(arg, Int)
-        argstr = dec(arg)
-    elseif isa(arg, Char)
-        argstr = string(arg)
-    elseif isa(arg, Symbol)
-        argstr = String(arg)
-    else
-        error("In JVrhsifcondition, Attempting to if with condition $(arg) in expr: $(ex)")
-    end    
-    verilog = argstr * " " * String(ex.args[1]) * " " 
-
-    arg = ex.args[3]
-    if     isa(arg, Expr) && arg.head == :ref
-        argstr = JVrhsref(arg)
-    elseif isa(arg, Int)
-        argstr = dec(arg)
-    elseif isa(arg, Char)
-        argstr = string(arg)
-    elseif isa(arg, Symbol)
-        argstr = String(arg)
-    else
-        error("In JVrhsifcondition, Attempting to if with condition $(arg) in expr: $(ex)")
-    end    
-    verilog = verilog * argstr
-    return verilog    
-end
-
-
-# TODO Verilog doesn't natively support recursion, so need to remove it
+# TODO registers
 function JVmacro(ex::Expr)
     mc = ex.args[1]
     if     mc == Symbol("@async")
@@ -402,18 +317,18 @@ function JVmacro(ex::Expr)
     elseif mc == Symbol("@delay")
         error("Hit an unfinished macrocall: $(mc)")
     elseif mc == Symbol("@block")
-        error("Hit an unfinished macrocall: $(mc)")
+        return JVmacroblock(ex)
     elseif mc == Symbol("@verilog")
-        error("Hit an unfinished macrocall: $(mc)")
+        return JVmacroverilog(ex)
     elseif mc == Symbol("@Julia")
-        error("Hit an unfinished macrocall: $(mc)")        
+        return JVmacrojulia(ex)
     else
         error("Hit an unexplored macrocall $(mc) in expr:\n$(ex)")
     end
 end
 
 function JVasync(ex::Expr)
-    verilog = "always@* begin\n"
+    verilog = "always @* begin\n"
 
     l = length(ex.args[2].args)
     for i = 1:l
@@ -427,7 +342,7 @@ end
 function JVasynchelper(ex::Expr, depth::Int)
     if isa(ex.args[1], Expr) && ex.args[1].head == :if
         verilog = ""
-
+        # TODO if statements inside async
     else
         if ex.args[1].head == :ref
             verilog = String(ex.args[1].args[1])
@@ -468,4 +383,23 @@ function JVasynchelper(ex::Expr, depth::Int)
 
         return verilog * " ;\n"
     end
+end
+
+# TODO Verilog doesn't natively support recursion, so need to remove it
+function JVmacroblock(ex::Expr)
+
+    error("JVmacroblock is unfinished")
+end
+
+function JVmacrojulia(ex::Expr)
+    verilog = "/* Pass Through Verilog */\n"
+    verilog = verilog * ex.args[2]
+    return verilog
+end
+
+function JVmacrojulia(ex::Expr)
+    verilog = "/* Pass Through Julia\n"
+    verilog = verilog * ex.args[2]
+    verilog = verilog * "\n*/\n"
+    return verilog
 end

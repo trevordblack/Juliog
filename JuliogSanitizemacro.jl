@@ -11,11 +11,11 @@ function JSmacro(ex::Expr)
     elseif mc == Symbol("@delay")
         return JSdelay(ex)
     elseif mc == Symbol("@block")
-        return ex
+        return JSmacroblock(ex)
     elseif mc == Symbol("@verilog")
-        return ex
+        return JSverilog(ex)
     elseif mc == Symbol("@julia")
-        return ex
+        return JSjulia(ex)
     else
         error("Hit an unexplored macrocall: $(mc)")
     end
@@ -37,7 +37,7 @@ function JSasync(ex::Expr)
     JSnonblock(ex.args[2].args[1], ex.args[2].args[1])
 
     # Descend into the async and recursively do stuff
-    ex.args[2].args[1] = JSmacrohelper(ex.args[2].args[1])
+    ex.args[2].args[1] = JSasynchelper(ex.args[2].args[1])
 end
 
 function JSreg(ex::Expr)
@@ -70,13 +70,13 @@ function JSreg(ex::Expr)
     end
 
     # Throw an error if a :(:=) is used
-    JScolonequals(ex.args[2].args[1], ex.args[2].args[1])
+    JScolonequals(ex.args[2].args[1])
 
     # Turn :(<=) into :(=)
     ex.args[2].args[1] = JSregequals(ex.args[2].args[1])
 
     # Descend into the reg and recursively do stuff
-    ex.args[2].args[1] = JSmacrohelper(ex.args[2].args[1])
+    ex.args[2].args[1] = JSreghelper(ex.args[2].args[1])
 
     # Turn :(=) into :(<=)
     ex.args[2].args[1] = JSregnonblocking(ex.args[2].args[1])
@@ -89,7 +89,7 @@ function JSedgereg(ex::Expr)
             error("Discovered uninstantiated symbol: $(rhs) in expr:\n$(ex)")
         end
         if arrowDict[ex.args[2]].BitCount != 1
-            error("Pos or Neg edge reg defined by a wire of bit count not 1:\n$(ex)")
+            error("Pos or Neg edge register defined by a wire of bit count not 1:\n$(ex)")
         end
     elseif isa(ex.args[2], Expr)
         # MOON matrix stuff
@@ -138,28 +138,33 @@ function JSedgereg(ex::Expr)
     end
 
     if !isa(ex.args[3], Expr)
-        error("@posedge or @negedge block is not a complete expr:\n$(ex)")
+        error("@posedge or @negedge block is not a complete Expr:\n$(ex)")
     end
 
     # Throw an error if a :(:=) is used
-    JScolonequals(ex.args[2].args[1], ex.args[2].args[1])
+    JScolonequals(ex.args[2].args[1])
 
     # Turn :(<=) into :(=)
     ex.args[2].args[1] = JSregequals(ex.args[2].args[1])
 
     # Descend into the reg and recursively do stuff
-    ex.args[2].args[1] = JSmacrohelper(ex.args[2].args[1])
+    ex.args[2].args[1] = JSreghelper(ex.args[2].args[1])
 
     # Turn :(=) into :(<=)
     ex.args[2].args[1] = JSregnonblocking(ex.args[2].args[1])
 end
+
 
 # TODO this stuff
 # Throw an error if all wires are not written to
 # Create wires if needed, change to regs as needed
 # Accomodate for ifs when they show up,
 # for ifs turn condition into JIR
-function JSmacrohelper(ex::Expr)
+function JSasynchelper(ex::Expr)
+
+end
+
+function JSreghelper(ex::Expr)
 
 end
 
@@ -181,6 +186,9 @@ function JSregbottomelse(ex::Expr)
 end
 
 # Throw an error if a :(:=) is recursively found
+function JScolonequals(ex::Expr)
+    JScolonequalshelper(ex, ex)
+end
 function JScolonequals(top::Expr, ex::Expr)
     l = length(ex.args)
     for i = 1:l
@@ -189,7 +197,7 @@ function JScolonequals(top::Expr, ex::Expr)
             if arg.head == :(:=)
                 error("ColonEquals assignment used in $(ex) in @reg block:\n$(top)")
             end
-            JScolonequals(top, arg)
+            JScolonequalshelper(top, arg)
         end
     end
 end
@@ -250,5 +258,65 @@ function JSdelay(ex::Expr)
     if !isa(ex.args[3], Expr)
         error("Final argument of @delay block is not a expr:\n$(ex)")
     end
+    return ex
+end
+
+function JSmacroblock(ex::Expr)
+    if length(ex.args) != 4
+        error("@block macro has incorrect number of arguments, should be 3:\n$(ex)")
+    end
+    if !isa(ex.args[2], Symbol)
+        error("@block macro does not have a Symbol as it's first argument:\n$(ex)")
+    end
+    if !isa(ex.args[3], String)
+        error("@block macro does not have a String as it's second argument:\n$(ex)")
+    end
+    if !isa(ex.args[3], Expr)
+        error("@block macro does not have an Expr as it's third argument:\n$(ex)")
+    end
+    if ex.args[3].head != Tuple
+        error("@block macro does not have a Tuple as it's third argument:\n$(ex)")
+    end
+
+    return ex
+end
+
+function JSverilog(ex::Expr)
+    if length(ex.args) != 2
+        error("@verilog macro has incorrect number of arguments, should be only 1:\n$(ex)")
+    end
+    if !isa(ex.args[2], Expr)
+        error("@verilog macro does not have an expr as it's argument:\n$(ex)")
+    end
+    if ex.args[2].head != :block
+        error("@verilog macro does not have a block as it's argument:\n$(ex)")
+    end
+    if length(ex.args[2].args) != 1
+        error("@verilog macro expr has incorrect number of exprs, should be only 1:\n$(ex)")
+    end        
+    if !isa(ex.args[2].args[1], String)
+        error("@verilog macro does not have contain a String inside it's block argument:\n$(ex)")
+    end     
+
+    return ex
+end
+
+function JSjulia(ex::Expr)
+    if length(ex.args) != 2
+        error("@julia macro has incorrect number of arguments, should be only 1:\n$(ex)")
+    end
+    if !isa(ex.args[2], Expr)
+        error("@julia macro does not have an expr as it's argument:\n$(ex)")
+    end
+    if ex.args[2].head != :block
+        error("@julia macro does not have a block as it's argument:\n$(ex)")
+    end
+    if length(ex.args[2].args) != 1
+        error("@julia macro expr has incorrect number of exprs, should be only 1:\n$(ex)")
+    end        
+    if !isa(ex.args[2].args[1], String)
+        error("@julia macro does not have contain a String inside it's block argument:\n$(ex)")
+    end     
+
     return ex
 end

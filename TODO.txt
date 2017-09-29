@@ -1,0 +1,22 @@
+JJ
+	Data structure for partitioning wires
+	pretty much everything
+
+JSmacro
+	JSasynchelper
+	JSreghelper
+
+JSif
+	JSifblockhelper
+
+JV
+	JVasynchelper (ifs specifically)
+	JVmacroblock
+	macro registers
+	macro delay
+
+
+
+Priorities:
+1. JJ data structure
+2. JV macroblock

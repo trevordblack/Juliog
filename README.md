@@ -867,28 +867,39 @@ POTENTIAL FEATURES
 ---
 
 + Polymorphic Julia code (Write Once)
-+ Combinational Reduction
-+ Instances of algorithmic equivalences
-+ Intelligent and Power-saving bitlength decisions
-+ Reversible logic so simulation can be played forward/backwards
-+ Visual graph which shows i.r.t what wire values are
-+ Multithreaded simulation
-+ Vulkan-accelerated xtor gate list
-+ CPU emulation running alongside Hardware simulation
-+ SPICE integration
-+ Stochastic delay modelling
-+ Easy Monte-Carlo simulations
 
-MOONSHOOT Stuff
----
-
-+ Combinational Reductions
++ Combinational Reductions:
     
   Trace a path of operations e.g. [& & | + - ^] from input to reg, reg to reg, reg to output have a list of combinational reduction equivalences
 
 + Flatten function:
 
   Removes any hierarchy from function, unrolls everything into top level
+
++ Lossless bitlength decisions, Lossy bit length decisions
+
+  Intelligent and Power-saving bitlength decisions. Wires of indeterminate bitlength act as indicators for programming.
+
++ Instances of algorithmic equivalences
+
+  For a defined set of functions and a finite input set, algorithmic equivalence can be defined. A defined set of equivalent functions can be extrapolated to solve for equivalent algorithm for a defined algorithm.
+
++ Generalized Hardware Programmability
+
+  Given a "program" to map to hardware, and a complete description of the programmable hardware, a generalized program can be written which tells you: One, if the program can be succesfully mapped to the programmable hardware, and two, a generalized--if potentially very inefficient--means to map the program onto the hardware.
+
++ Reversible logic so simulation can be played forward/backwards
++ Visual graph which shows i.r.t what wire values are
+
++ CPU emulation running alongside Hardware simulation
++ Multithreaded Simulation
++ Vulkan-accelerated Simulation
+
++ Synthesis
++ Vulkan-accelerated Synthesis
++ SPICE integration
++ Stochastic delay modelling
++ Easy Monte-Carlo simulations
 
 
 TEST BENCH CONSTRUCTION

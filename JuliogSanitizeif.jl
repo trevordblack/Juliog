@@ -146,16 +146,6 @@ function JSifblockhelper(ex::Expr)
             error("Found incorrect expr head $(h) in if expr:\n$(ex)")                
         end
     end  
-    l = length(ifargs)
-    # loop through to find redundancy in ifargs
-    ifargslhs = Array{Any}(l)
-    for i = 1:l
-        lhs = ifargs[i].args[1]
-        if find(ifargslhs .== lhs) != []
-            error("Attempting to write to lhs of $(ifargs[i]) in:\n$(ex)")
-        end
-        ifargslhs[i] = lhs
-    end
 
     # Iterate through else statements and create if-assignments
     l = length(ex.args[3].args)
@@ -171,9 +161,10 @@ function JSifblockhelper(ex::Expr)
         else
             error("Found incorrect expr head $(h) in if expr:\n$(ex)")                
         end
-    end   
-    l = length(elseargs)
+    end  
+
     # loop through to find redundancy in elseargs
+    l = length(elseargs)
     elseargslhs = Array{Any}(l)
     for i = 1:l
         lhs = elseargs[i].args[1]
@@ -182,8 +173,18 @@ function JSifblockhelper(ex::Expr)
         end
         elseargslhs[i] = lhs
     end
+    # loop through to find redundancy in ifargs
+    l = length(ifargs)
+    ifargslhs = Array{Any}(l)
+    for i = 1:l
+        lhs = ifargs[i].args[1]
+        if find(ifargslhs .== lhs) != []
+            error("Attempting to write to lhs of $(ifargs[i]) in:\n$(ex)")
+        end
+        ifargslhs[i] = lhs
+    end
 
-    # compare ifargs against elseargs
+    # TODO compare ifargs against elseargs
     jargs = Array{Any}(0)
     for i = 1:l
 
@@ -193,8 +194,17 @@ function JSifblockhelper(ex::Expr)
         jargs[j].args[2] = Expr(:if, condition, jarg.args[2], jarg.args[1])
     end
 
+    # finish up with elseargs
+    l = length(elseargs)
+    for i = 1:l
+
+    end
+
+
     append!(jargs, ifargs)
     ex.args[2].args[i] = jexpr 
+
+    return jargs
 end
 
 function JSifblockequals(ex::Expr)
@@ -264,8 +274,6 @@ function JSifblockequalsref(ex::Expr, bcrhs::Int, endirhs::Int)
             warn("Truncation of Bits necessitated: $(1) bit on lh, and $(bcrhs) bits on rhs:\n$(ex)")
         end
     end 
-
-    pushArrowBitsJSif(ifAD, name, endilhs, bl,br,bclhs)
 end
 
 function JSifblockequalssymbol(ex::Expr, bcrhs::Int, endirhs::Int)

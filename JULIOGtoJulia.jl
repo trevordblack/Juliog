@@ -650,7 +650,7 @@ end
 function JJmacro(ex::Expr)
     mc = ex.args[1]
     if     mc == Symbol("@async")
-        return JJasync(ex)
+    error("Hit an unfinished macrocall: $(mc)")
     elseif mc == Symbol("@reg")
         error("Hit an unfinished macrocall: $(mc)")
     elseif mc == Symbol("@posedge")
