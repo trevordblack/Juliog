@@ -1,6 +1,5 @@
 JJ
-	Data structure for partitioning wires
-	pretty much everything
+	pretty much everything needs to be rewritten
 
 JSmacro
 	JSasynchelper
@@ -18,5 +17,6 @@ JV
 
 
 Priorities:
-1. JJ data structure
-2. JV macroblock
+1. JJassignment
+2. JJ data flow graph set of problems
+3. JV macroblock

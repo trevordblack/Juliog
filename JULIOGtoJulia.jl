@@ -3,45 +3,25 @@
 # MOON add support for Julia matrix notation
 #       e.g. a[5:0, 3:1, 2:0]
 
-#=   
-Replace these Symbols to create runnable julia code
-Juliog
-    Wire    (correct endian, bit indexing)
-    Input
-    Output
-    if   
-        solve for if a latch or something else   
-    [a:b]    
-        and if you ever see [b:a] for same wire, that means they are reverse-indexing
-    &
-    ^
-    matrices index (no verilog bus notation)
-    
-    =
-    :=
-    <=
-    
-    @reg
-    @asynch
-    @posedge wire
-    @negedge wire
-    @delay n Expr
-=#
 
-# Prerequitisite: Must be passed a parameterized JULIOG function block
+# Prerequitisite: Must be passed a preprocessed Juliog function block
 function JULIOGtoJulia(ex::Expr, ad::Dict{Symbol, Arrow})
     global arrowDict = ad
     return JJfunction(ex)
 end
 
+# TODO add symbolic link for nameDict for direct assignments of one wire to another
 function JJfunction(ex::Expr)
-    println(ex)
+    println(ex)    
+    global nameDict = Dict{Symbol, Array{Symbol}}()
     jexpr = Expr(:Function)
-    jexpr.args = Array{Any}(2)
-    jexpr.args[1] = ex.args[1]
-    jexpr.args[2] = JJblock(ex.args[2])
+    jargs = Array{Any}(2)
+    jargs[1] = ex.args[1]
+    jargs[2] = JJblock(ex.args[2])
+    jexpr.args = jargs
     return jexpr
 end
+
 
 # Prerequisite: Expr head MUST be a :block
 function JJblock(ex::Expr)
@@ -50,16 +30,29 @@ function JJblock(ex::Expr)
     jargs = Array{Any}(l)
 
     for i = 1:l
+        println(i)
         arg = ex.args[i]
         println(arg)
         if     isa(arg, Expr)
             jargs[i] = JJblockhelper(arg)
+            println("jargs at $(i) is $(jargs[i])")
         else
             error("Inside JULIOGtoJulia hit a non-expression block argument")
         end
     end
 
-    # TODO remove :block exprs
+    # remove :block exprs
+    i = 1
+    while i <= length(jargs)
+        arg = jargs[i]
+        if     isa(arg, Expr) && arg.head == :block
+            splice!(jargs, i, arg.args)
+        elseif isa(arg, Expr) && arg.head == :call
+            i = i + 1
+        else
+            error("A non Expr, or an Expr not of type call is found in the Julia:\n$(jargs)")
+        end
+    end
 
     jexpr.args = jargs
     return jexpr
@@ -78,7 +71,6 @@ function JJblockhelper(ex::Expr)
     end
 end
 
-# TODO create new data structure with wire partitioning
 function JJequals(ex::Expr)
     global arrowDict
 
@@ -86,6 +78,7 @@ function JJequals(ex::Expr)
     if isa(ex.args[1], Expr)
         # Is a ref
         name = ex.args[1].args[1]
+        # MOON
     else
         name = ex.args[1]
     end
@@ -115,53 +108,68 @@ function JJequals(ex::Expr)
             return Expr(:call, :Output, name, bc)
         end 
     elseif asgn == 2
+        global nameDict
         jargs = Array{Any}(0)
-        lastasgn = a.AsgnArray[1]
-        lasti = 1
+        nameArray = Array{Symbol}(0)
+
+        tmpasgn = a.AsgnArray[1]
+        tmpi = 1
         bmin = min(a.BitLeft, a.BitRight)
+
         l = length(a.AsgnArray)
         for i = 2:l
             asgn = a.AsgnArray[i]
-            if asgn != lastasgn
-                # TODO add to data structure
+            if asgn != tmpasgn
+                newname = Symbol(
+                    String(String(name) * "!!b" * 
+                    dec(tmpi + bmin - 1) * "_" * dec(i + bmin - 2)))
+                bc = i - tmpi
+                append!(nameArray, fill(newname , bc))
 
-                nn = Symbol(String(String(name) * "!!b" * dec(lasti + bmin - 1) * "_" * dec(i + bmin - 2)))
-                bc = i - lasti
-                if   asgn == 0                
-                    append!(jargs, [Expr(:call, :Wire, nn, bc) ;
-                     Expr(:call, :CONST, nn, fill!(Array{UIn8}(bc), UInt8('z')))])
+                if   asgn == 0
+                    append!(jargs, [Expr(:call, :Wire, newname, bc) ;
+                        Expr(:call, :CONST, newname, fill(UInt8('z'), bc))])
                 else
-                    push!(jargs, Expr(:call, :Wire, nn, bc))
+                    push!(jargs, Expr(:call, :Wire, newname, bc))
                 end
+
+                tmpasgn = asgn
+                tmpi = i
             end
         end
         # Solve for last wire bits
-        nn = Symbol(String(String(name) * "!!b" * dec(lasti + bmin - 1) * "_" * dec(l + bmin - 1)))
-        bc = l - lasti + 1
+        newname = Symbol(
+            String(String(name) * "!!b" * 
+            dec(tmpi + bmin - 1) * "_" * dec(l + bmin - 1)))
+        bc = l - tmpi + 1
+        append!(nameArray, fill(newname , bc))
+
         if   asgn == 0                
-            append!(jargs, [Expr(:call, :Wire, nn, bc) ;
-             Expr(:call, :CONST, nn, fill!(Array{UIn8}(bc), UInt8('z')))])
+            append!(jargs, [Expr(:call, :Wire, newname, bc) ;
+                Expr(:call, :CONST, newname, fill(UInt8('z'), bc))])
         else
-            push!(jargs, Expr(:call, :Wire, nn, bc))
+            push!(jargs, Expr(:call, :Wire, newname, bc))
         end
+
+        nameDict[name] = nameArray
+
+        jexpr = Expr(:block)
+        jexpr.args = jargs
+        return jexpr
     end  
 end
 
 
 function JJassignment(ex::Expr)
 
-    # Determine what the lhs is
+    # Deal with lhs
     if isa(ex.args[1], Expr)
         # Is a ref
         name = ex.args[1].args[1]
         # TODO get name for this assignment from new data structure
         # TODO account for reverse indexing
 
-        # MOON matrix notation
-
-        # MOON Is a tuple
-
-        # MOON Is a vcat
+        # MOON 
     else
         # Must just be a symbol and therefore the wire is not partitioned
         name = ex.args[1]
@@ -174,23 +182,23 @@ function JJassignment(ex::Expr)
     # If declaring two wires as equal, make a symbolic link and save bit offset
     if     isa(rhs, Symbol)
 
+    # Also a symbolic link
     elseif isa(rhs, Expr) && rhs.head == :ref && isa(rhs.args[1], Symbol)
 
+    # Is a simple constant declaration
     elseif isa(rhs, Int)
 
+    # Is a simple constant declaration
     elseif isa(rhs, Char)
-        rhsJulia
+
+    # Actually some logic involved
     else
-        rhsJulia = JJrhs(rhs)
+        rhsArgs, rhsJulia = JJrhs(rhs)
     end
 
 
 
     # Assign to lhs
-
-
-
-
     if isa(ex.args[1], Expr)
         # We are indexing bit(s)
         sym = ex.args[1].args[1]
@@ -269,6 +277,59 @@ function JJassignment(ex::Expr)
     end
 
 end
+
+
+function JJrhs(rhs)
+    if isa(rhs, Expr)
+        bcrhs, endirhs = JSrhsexpr(rhs)
+    else
+        # is a Symbol or 0,1,'x','z'
+        if isa(rhs, Symbol)
+            if !haskey(arrowDict, rhs)
+                error("Discovered uninstantiated symbol: $(rhs) in expr:\n$(ex)")
+            end
+            bcrhs =  arrowDict[rhs].BitCount
+            endirhs = arrowDict[rhs].Endian
+        else
+            if     rhs == 0
+                bcrhs = 1
+                endirhs = 0
+            elseif rhs == 1
+                bcrhs = 1
+                endirhs = 0
+            elseif rhs == 'x'
+                bcrhs = 1
+                endirhs = 0
+            elseif rhs == 'z'
+                bcrhs = 1
+                endirhs = 0
+            else
+                error("Attempting to assign wire to incorrectly syntaxed Right Hand Side:\n$(ex)")
+            end
+        end
+    end
+end
+
+
+# The righthand side of an assignment
+function JJrhsexpr(ex::Expr)
+    h = ex.head
+    if     h == :ref
+        return JJrhsref(ex)
+    elseif h == :vcat
+        return JJrhsvcat(ex)
+    elseif h == :call
+        return JJrhscall(ex)
+    elseif h == :if
+        return JJrhsif(ex)
+    else
+        error("Hit unexpected expression symbol $(h) in JSreadrhs on expression:\n$(ex)")
+    end
+end
+
+
+
+
 
 
 function JJevaluation(sym::Symbol, bl::Int, br::Int, endi::Bool, ex::Expr)

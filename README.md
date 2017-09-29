@@ -744,6 +744,8 @@ Just like Verilog, Juliog supports "accidentally" creating latches:
 
 ```julia
 julia> :(
+	# pass, D, and Q created as wires
+
 	if pass == 1
 		D = Q
 	end
@@ -834,7 +836,7 @@ The reason it might be desirable to use or not use @async macros is due to the i
 
 + FPGA compilation tends to improve with explicit ? : Mux calls, due to the poor quality of FPGA compilation software. Therefore, the @async macro may not be desired
 
-+ ASIC compilation is done in dc_shell, where the existence of always blocks rather than ? : Mux calls is fairly insubstantial
++ ASIC compilation is done in Design Compiler, where the existence of always blocks versus ? : Mux calls is fairly insubstantial.
 
 + The @async macro can be also used as a style choice
 
@@ -886,7 +888,7 @@ POTENTIAL FEATURES
 
 + Generalized Hardware Programmability
 
-  Given a "program" to map to hardware, and a complete description of the programmable hardware, a generalized program can be written which tells you: One, if the program can be succesfully mapped to the programmable hardware, and two, a generalized--if potentially very inefficient--means to map the program onto the hardware.
+  Given a "program" to map to hardware, and a complete description of the programmable hardware, a generalized program can be written which tells you: One, if the program can be successfully mapped to the programmable hardware, and two, a generalized--if potentially very inefficient--means to map the program onto the hardware.
 
 + Reversible logic so simulation can be played forward/backwards
 + Visual graph which shows i.r.t what wire values are
